@@ -1,4 +1,6 @@
 pub mod select_server;
+use interactive_clap::ToCli;
+use interactive_clap_derive::InteractiveClap;
 
 /// аргументы, необходимые для создания транзакции в online mode
 #[derive(Debug, Default, Clone, clap::Clap)]
@@ -15,6 +17,10 @@ pub struct CliNetworkArgs {
 #[derive(Debug, Clone)]
 pub struct NetworkArgs {
     selected_server: self::select_server::SelectServer,
+}
+
+impl ToCli for NetworkArgs {
+    type CliVariant = CliNetworkArgs;
 }
 
 impl CliNetworkArgs {

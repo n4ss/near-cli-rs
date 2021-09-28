@@ -38,6 +38,10 @@ pub enum SignTransaction {
     SignManually(self::sign_manually::SignManually),
 }
 
+impl interactive_clap::ToCli for SignTransaction {
+    type CliVariant = CliSignTransaction;
+}
+
 impl CliSignTransaction {
     pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
         match self {

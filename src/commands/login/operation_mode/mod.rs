@@ -1,21 +1,24 @@
 use strum::{EnumDiscriminants, EnumIter, EnumMessage};
+use interactive_clap::ToCli;
+use interactive_clap_derive::InteractiveClap;
 
 pub mod online_mode;
 
-/// инструмент выбора режима online/offline
-#[derive(Debug, Default, Clone, clap::Clap)]
-#[clap(
-    setting(clap::AppSettings::ColoredHelp),
-    setting(clap::AppSettings::DisableHelpSubcommand),
-    setting(clap::AppSettings::VersionlessSubcommands)
-)]
-pub struct CliOperationMode {
-    #[clap(subcommand)]
-    mode: Option<CliMode>,
-}
+// /// инструмент выбора режима online/offline
+// #[derive(Debug, Default, Clone, clap::Clap)]
+// #[clap(
+//     setting(clap::AppSettings::ColoredHelp),
+//     setting(clap::AppSettings::DisableHelpSubcommand),
+//     setting(clap::AppSettings::VersionlessSubcommands)
+// )]
+// pub struct CliOperationMode {
+//     #[clap(subcommand)]
+//     mode: Option<CliMode>,
+// }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, InteractiveClap)]
 pub struct OperationMode {
+    #[interactive_clap(subcommand)]
     pub mode: Mode,
 }
 
@@ -28,13 +31,13 @@ impl CliOperationMode {
     }
 }
 
-impl From<OperationMode> for CliOperationMode {
-    fn from(item: OperationMode) -> Self {
-        Self {
-            mode: Some(item.mode.into()),
-        }
-    }
-}
+// impl From<OperationMode> for CliOperationMode {
+//     fn from(item: OperationMode) -> Self {
+//         Self {
+//             mode: Some(item.mode.into()),
+//         }
+//     }
+// }
 
 impl From<CliOperationMode> for OperationMode {
     fn from(item: CliOperationMode) -> Self {
@@ -52,13 +55,13 @@ impl OperationMode {
     }
 }
 
-#[derive(Debug, Clone, clap::Clap)]
-pub enum CliMode {
-    /// Execute a change method with online mode
-    Network(self::online_mode::CliNetworkArgs),
-}
+// #[derive(Debug, Clone, clap::Clap)]
+// pub enum CliMode {
+//     /// Execute a change method with online mode
+//     Network(self::online_mode::CliNetworkArgs),
+// }
 
-#[derive(Debug, Clone, EnumDiscriminants)]
+#[derive(Debug, Clone, EnumDiscriminants, InteractiveClap)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
 pub enum Mode {
     #[strum_discriminants(strum(message = "Yes, I keep it simple"))]
@@ -77,15 +80,15 @@ impl CliMode {
     }
 }
 
-impl From<Mode> for CliMode {
-    fn from(mode: Mode) -> Self {
-        match mode {
-            Mode::Network(network_args) => {
-                Self::Network(self::online_mode::CliNetworkArgs::from(network_args))
-            }
-        }
-    }
-}
+// impl From<Mode> for CliMode {
+//     fn from(mode: Mode) -> Self {
+//         match mode {
+//             Mode::Network(network_args) => {
+//                 Self::Network(self::online_mode::CliNetworkArgs::from(network_args))
+//             }
+//         }
+//     }
+// }
 
 impl From<CliMode> for Mode {
     fn from(item: CliMode) -> Self {

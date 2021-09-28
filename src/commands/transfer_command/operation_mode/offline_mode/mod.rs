@@ -1,3 +1,6 @@
+use interactive_clap::ToCli;
+use interactive_clap_derive::InteractiveClap;
+
 /// аргументы, необходимые для создания трансфера в offline mode
 #[derive(Debug, Default, Clone, clap::Clap)]
 #[clap(
@@ -13,6 +16,10 @@ pub struct CliOfflineArgs {
 #[derive(Debug, Clone)]
 pub struct OfflineArgs {
     send_from: super::online_mode::select_server::server::SendFrom,
+}
+
+impl ToCli for OfflineArgs {
+    type CliVariant = CliOfflineArgs;
 }
 
 impl CliOfflineArgs {

@@ -26,6 +26,11 @@ impl CliNetworkArgs {
     }
 }
 
+impl interactive_clap::ToCli for NetworkArgs {
+    type CliVariant = CliNetworkArgs;
+}
+
+
 impl From<NetworkArgs> for CliNetworkArgs {
     fn from(network_args: NetworkArgs) -> Self {
         Self {

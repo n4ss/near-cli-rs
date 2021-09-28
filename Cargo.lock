@@ -1310,6 +1310,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "interactive_clap"
+version = "0.1.0"
+
+[[package]]
+name = "interactive_clap"
+version = "0.1.0"
+source = "git+https://github.com/FroVolod/interactive-clap#8c544f9fa8b146f4695a3a7e1a4a44a06a8d8196"
+
+[[package]]
+name = "interactive_clap_derive"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "clap_generate",
+ "interactive_clap 0.1.0 (git+https://github.com/FroVolod/interactive-clap)",
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "itoa"
 version = "0.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1564,6 +1586,8 @@ dependencies = [
  "dirs",
  "ed25519-dalek",
  "hex",
+ "interactive_clap 0.1.0",
+ "interactive_clap_derive",
  "near-crypto",
  "near-jsonrpc-client",
  "near-jsonrpc-primitives",
@@ -2110,9 +2134,9 @@ checksum = "bc881b2c22681370c6a780e47af9840ef841837bc98118431d4e1868bd0c1086"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.24"
+version = "1.0.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e0704ee1a7e00d7bb417d0770ea303c1bccbabf0ef1667dae92b5967f5f8a71"
+checksum = "b9f5105d4fdaab20335ca9565e106a5d9b82b6219b5ba735731124ac6711d23d"
 dependencies = [
  "unicode-xid",
 ]
@@ -2759,9 +2783,9 @@ checksum = "1e81da0851ada1f3e9d4312c704aa4f8806f0f9d69faaf8df2f3464b4a9437c2"
 
 [[package]]
 name = "syn"
-version = "1.0.60"
+version = "1.0.76"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c700597eca8a5a762beb35753ef6b94df201c81cca676604f547495a0d7f0081"
+checksum = "c6f107db402c2c2055242dbf4d2af0e69197202e9faacbef9571bbe47f5a1b84"
 dependencies = [
  "proc-macro2",
  "quote",

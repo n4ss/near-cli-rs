@@ -1,5 +1,7 @@
 use dialoguer::{theme::ColorfulTheme, Select};
 use strum::{EnumDiscriminants, EnumIter, EnumMessage, IntoEnumIterator};
+use interactive_clap::ToCli;
+use interactive_clap_derive::InteractiveClap;
 
 mod offline_mode;
 mod online_mode;
@@ -20,6 +22,11 @@ pub struct CliOperationMode {
 pub struct OperationMode {
     pub mode: Mode,
 }
+
+impl interactive_clap::ToCli for OperationMode {
+    type CliVariant = CliOperationMode;
+}
+
 
 impl CliOperationMode {
     pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
@@ -68,8 +75,10 @@ pub enum CliMode {
 #[derive(Debug, Clone, EnumDiscriminants)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
 pub enum Mode {
+    /// Prepare and, optionally, submit a new transaction with online mode
     #[strum_discriminants(strum(message = "Yes, I keep it simple"))]
     Network(self::online_mode::NetworkArgs),
+    /// Prepare and, optionally, submit a new transaction with offline mode
     #[strum_discriminants(strum(
         message = "No, I want to work in no-network (air-gapped) environment"
     ))]
