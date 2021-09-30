@@ -3,11 +3,10 @@ extern crate shell_words;
 use interactive_clap::ToCli;
 use interactive_clap_derive::InteractiveClap;
 
+mod account_id;
 mod commands;
 mod common;
 mod consts;
-// mod operation_mod;
-// mod commands_mod;
 
 type CliResult = color_eyre::eyre::Result<()>;
 
@@ -84,7 +83,6 @@ fn main() -> CliResult {
     let args = Args::from(cli);
 
     let completed_cli = CliArgs::from(args.clone());
-
 
     let process_result = actix::System::new().block_on(args.process());
 

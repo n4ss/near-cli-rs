@@ -35,7 +35,6 @@ impl CliTransfer {
 //         }
 //     }
 // }
-
 impl Transfer {
     pub fn from(
         item: CliTransfer,
@@ -104,14 +103,13 @@ pub struct TransferNEARTokensAction {
         crate::commands::construct_transaction_command::sign_transaction::SignTransaction,
 }
 
-impl ToCli for TransferNEARTokensAction {
-    type CliVariant = CliTransferNEARTokensAction;
-}
+// impl ToCli for TransferNEARTokensAction {
+//     type CliVariant = CliTransferNEARTokensAction;
+// }
 
 impl ToCli for crate::common::NearBalance {
     type CliVariant = crate::common::NearBalance;
 }
-
 
 impl CliTransferNEARTokensAction {
     pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
@@ -138,7 +136,9 @@ impl CliTransferNEARTokensAction {
 
 impl TransferNEARTokensAction {
     fn from(
-        item: CliTransferNEARTokensAction,
+        item: <TransferNEARTokensAction as ToCli>::CliVariant,
+        //context: <TransferNEARTokensAction as ToCli>::Context { connection_config: Option<crate::common::ConnectionConfig>, sender_account_id: near_primitives::types::AccountId },
+        //context: (Option<crate::common::ConnectionConfig>, sender_account_id: near_primitives::types::AccountId),
         connection_config: Option<crate::common::ConnectionConfig>,
         sender_account_id: near_primitives::types::AccountId,
     ) -> color_eyre::eyre::Result<Self> {

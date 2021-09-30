@@ -1,7 +1,7 @@
 use dialoguer::{theme::ColorfulTheme, Select};
-use strum::{EnumDiscriminants, EnumIter, EnumMessage, IntoEnumIterator};
 use interactive_clap::ToCli;
 use interactive_clap_derive::InteractiveClap;
+use strum::{EnumDiscriminants, EnumIter, EnumMessage, IntoEnumIterator};
 
 pub mod operation_mode;
 mod receiver;
@@ -35,10 +35,9 @@ impl CliCurrency {
     }
 }
 
-impl interactive_clap::ToCli for Currency {
-    type CliVariant = CliCurrency;
-}
-
+// impl interactive_clap::ToCli for Currency {
+//     type CliVariant = CliCurrency;
+// }
 
 // impl From<Currency> for CliCurrency {
 //     fn from(currency: Currency) -> Self {
@@ -78,6 +77,7 @@ impl Currency {
 #[derive(Debug, Clone, EnumDiscriminants, InteractiveClap)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
 enum CurrencySelection {
+    /// The transfer is carried out in NEAR tokens
     #[strum_discriminants(strum(message = "NEAR tokens"))]
     NEAR(self::operation_mode::OperationMode),
 }

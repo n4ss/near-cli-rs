@@ -1,23 +1,30 @@
 use dialoguer::Input;
+use interactive_clap::ToCli;
+use interactive_clap_derive::InteractiveClap;
 
-/// данные об отправителе транзакции
-#[derive(Debug, Default, Clone, clap::Clap)]
-#[clap(
-    setting(clap::AppSettings::ColoredHelp),
-    setting(clap::AppSettings::DisableHelpSubcommand),
-    setting(clap::AppSettings::VersionlessSubcommands)
-)]
-pub struct CliSender {
-    pub sender_account_id: Option<near_primitives::types::AccountId>,
-    #[clap(subcommand)]
-    send_to: Option<super::receiver::CliSendTo>,
-}
+// /// данные об отправителе транзакции
+// #[derive(Debug, Default, Clone, clap::Clap)]
+// #[clap(
+//     setting(clap::AppSettings::ColoredHelp),
+//     setting(clap::AppSettings::DisableHelpSubcommand),
+//     setting(clap::AppSettings::VersionlessSubcommands)
+// )]
+// pub struct CliSender {
+//     pub sender_account_id: Option<crate::account_id::AccountId>,
+//     #[clap(subcommand)]
+//     send_to: Option<super::receiver::CliSendTo>,
+// }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, InteractiveClap)]
 pub struct Sender {
-    pub sender_account_id: near_primitives::types::AccountId,
+    pub sender_account_id: crate::account_id::AccountId,
+    #[interactive_clap(subcommand)]
     pub send_to: super::receiver::SendTo,
 }
+
+// impl ToCli for crate::account_id::AccountId {
+//     type CliVariant = crate::account_id::AccountId;
+// }
 
 impl CliSender {
     pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
@@ -33,25 +40,25 @@ impl CliSender {
     }
 }
 
-impl From<Sender> for CliSender {
-    fn from(sender: Sender) -> Self {
-        Self {
-            sender_account_id: Some(sender.sender_account_id),
-            send_to: Some(super::receiver::CliSendTo::from(sender.send_to)),
-        }
-    }
-}
+// impl From<Sender> for CliSender {
+//     fn from(sender: Sender) -> Self {
+//         Self {
+//             sender_account_id: Some(sender.sender_account_id),
+//             send_to: Some(super::receiver::CliSendTo::from(sender.send_to)),
+//         }
+//     }
+// }
 
 impl Sender {
     pub fn from(
         item: CliSender,
         connection_config: Option<crate::common::ConnectionConfig>,
     ) -> color_eyre::eyre::Result<Self> {
-        let sender_account_id: near_primitives::types::AccountId = match item.sender_account_id {
+        let sender_account_id: crate::account_id::AccountId = match item.sender_account_id {
             Some(cli_sender_account_id) => match &connection_config {
                 Some(network_connection_config) => match crate::common::check_account_id(
                     network_connection_config.clone(),
-                    cli_sender_account_id.clone(),
+                    cli_sender_account_id.clone().into(),
                 )? {
                     Some(_) => cli_sender_account_id,
                     None => {
@@ -81,16 +88,17 @@ impl Sender {
 impl Sender {
     fn input_sender_account_id(
         connection_config: Option<crate::common::ConnectionConfig>,
-    ) -> color_eyre::eyre::Result<near_primitives::types::AccountId> {
+    ) -> color_eyre::eyre::Result<crate::account_id::AccountId> {
         loop {
-            let account_id: near_primitives::types::AccountId = Input::new()
+            let account_id: crate::account_id::AccountId = Input::new()
                 .with_prompt("What is the account ID of the sender?")
                 .interact_text()
                 .unwrap();
             if let Some(connection_config) = &connection_config {
-                if let Some(_) =
-                    crate::common::check_account_id(connection_config.clone(), account_id.clone())?
-                {
+                if let Some(_) = crate::common::check_account_id(
+                    connection_config.clone(),
+                    account_id.clone().into(),
+                )? {
                     break Ok(account_id);
                 } else {
                     println!("Account <{}> doesn't exist", account_id.to_string());
@@ -107,7 +115,7 @@ impl Sender {
         network_connection_config: Option<crate::common::ConnectionConfig>,
     ) -> crate::CliResult {
         let unsigned_transaction = near_primitives::transaction::Transaction {
-            signer_id: self.sender_account_id.clone(),
+            signer_id: self.sender_account_id.0.clone(),
             ..prepopulated_unsigned_transaction
         };
         self.send_to

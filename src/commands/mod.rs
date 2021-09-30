@@ -1,17 +1,17 @@
 use dialoguer::{theme::ColorfulTheme, Select};
-use strum::{EnumDiscriminants, EnumIter, EnumMessage, IntoEnumIterator};
 use interactive_clap::ToCli;
 use interactive_clap_derive::InteractiveClap;
+use strum::{EnumDiscriminants, EnumIter, EnumMessage, IntoEnumIterator};
 
-pub mod add_command;
+// pub mod add_command;
 pub mod construct_transaction_command;
-pub mod delete_command;
-pub mod execute_command;
-pub mod generate_shell_completions_command;
-pub mod login;
+// pub mod delete_command;
+// pub mod execute_command;
+// pub mod generate_shell_completions_command;
+// pub mod login;
 pub mod transfer_command;
 pub mod utils_command;
-pub mod view_command;
+// pub mod view_command;
 
 // #[derive(Debug, Clone, clap::Clap)]
 // pub enum CliTopLevelCommand {

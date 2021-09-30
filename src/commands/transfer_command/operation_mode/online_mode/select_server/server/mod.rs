@@ -1,6 +1,7 @@
-use std::str::FromStr;
-
 use dialoguer::Input;
+use interactive_clap::ToCli;
+use interactive_clap_derive::InteractiveClap;
+use std::str::FromStr;
 
 /// предустановленный RPC-сервер
 #[derive(Debug, Default, Clone, clap::Clap)]
@@ -34,6 +35,20 @@ pub struct Server {
     pub send_from: SendFrom,
 }
 
+#[derive(Debug, Clone)]
+pub struct CustomServer {
+    pub connection_config: Option<crate::common::ConnectionConfig>,
+    pub send_from: SendFrom,
+}
+
+impl ToCli for Server {
+    type CliVariant = CliServer;
+}
+
+impl ToCli for CustomServer {
+    type CliVariant = CliCustomServer;
+}
+
 impl CliCustomServer {
     pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
         let mut args = self
@@ -51,6 +66,20 @@ impl CliCustomServer {
 
 impl From<Server> for CliCustomServer {
     fn from(server: Server) -> Self {
+        Self {
+            url: Some(
+                crate::common::AvailableRpcServerUrl::from_str(
+                    server.connection_config.unwrap().rpc_url().as_str(),
+                )
+                .unwrap(),
+            ),
+            send_from: Some(server.send_from.into()),
+        }
+    }
+}
+
+impl From<CustomServer> for CliCustomServer {
+    fn from(server: CustomServer) -> Self {
         Self {
             url: Some(
                 crate::common::AvailableRpcServerUrl::from_str(
@@ -97,7 +126,7 @@ impl CliServer {
 }
 
 impl CliCustomServer {
-    pub fn into_server(self) -> color_eyre::eyre::Result<Server> {
+    pub fn into_custom_server(self) -> color_eyre::eyre::Result<CustomServer> {
         let url: crate::common::AvailableRpcServerUrl = match self.url {
             Some(url) => url,
             None => Input::new()
@@ -110,7 +139,7 @@ impl CliCustomServer {
             Some(cli_send_from) => SendFrom::from(cli_send_from, connection_config.clone())?,
             None => SendFrom::choose_send_from(connection_config.clone())?,
         };
-        Ok(Server {
+        Ok(CustomServer {
             connection_config,
             send_from,
         })
@@ -128,14 +157,26 @@ impl Server {
     }
 }
 
-#[derive(Debug, Clone, clap::Clap)]
-pub enum CliSendFrom {
-    /// Specify a sender
-    Sender(crate::commands::transfer_command::sender::CliSender),
+impl CustomServer {
+    pub async fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+    ) -> crate::CliResult {
+        self.send_from
+            .process(prepopulated_unsigned_transaction, self.connection_config)
+            .await
+    }
 }
 
-#[derive(Debug, Clone)]
+// #[derive(Debug, Clone, clap::Clap)]
+// pub enum CliSendFrom {
+//     /// Specify a sender
+//     Sender(crate::commands::transfer_command::sender::CliSender),
+// }
+
+#[derive(Debug, Clone, InteractiveClap)]
 pub enum SendFrom {
+    /// Specify a sender
     Sender(crate::commands::transfer_command::sender::Sender),
 }
 
@@ -151,13 +192,13 @@ impl CliSendFrom {
     }
 }
 
-impl From<SendFrom> for CliSendFrom {
-    fn from(send_from: SendFrom) -> Self {
-        match send_from {
-            SendFrom::Sender(sender) => Self::Sender(sender.into()),
-        }
-    }
-}
+// impl From<SendFrom> for CliSendFrom {
+//     fn from(send_from: SendFrom) -> Self {
+//         match send_from {
+//             SendFrom::Sender(sender) => Self::Sender(sender.into()),
+//         }
+//     }
+// }
 
 impl SendFrom {
     pub fn from(

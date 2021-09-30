@@ -1,26 +1,27 @@
 use interactive_clap::ToCli;
 use interactive_clap_derive::InteractiveClap;
 
-/// аргументы, необходимые для создания трансфера в offline mode
-#[derive(Debug, Default, Clone, clap::Clap)]
-#[clap(
-    setting(clap::AppSettings::ColoredHelp),
-    setting(clap::AppSettings::DisableHelpSubcommand),
-    setting(clap::AppSettings::VersionlessSubcommands)
-)]
-pub struct CliOfflineArgs {
-    #[clap(subcommand)]
-    pub send_from: Option<super::online_mode::select_server::server::CliSendFrom>,
-}
+// /// аргументы, необходимые для создания трансфера в offline mode
+// #[derive(Debug, Default, Clone, clap::Clap)]
+// #[clap(
+//     setting(clap::AppSettings::ColoredHelp),
+//     setting(clap::AppSettings::DisableHelpSubcommand),
+//     setting(clap::AppSettings::VersionlessSubcommands)
+// )]
+// pub struct CliOfflineArgs {
+//     #[clap(subcommand)]
+//     pub send_from: Option<super::online_mode::select_server::server::CliSendFrom>,
+// }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, InteractiveClap)]
 pub struct OfflineArgs {
+    #[interactive_clap(subcommand)]
     send_from: super::online_mode::select_server::server::SendFrom,
 }
 
-impl ToCli for OfflineArgs {
-    type CliVariant = CliOfflineArgs;
-}
+// impl ToCli for OfflineArgs {
+//     type CliVariant = CliOfflineArgs;
+// }
 
 impl CliOfflineArgs {
     pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
@@ -31,13 +32,13 @@ impl CliOfflineArgs {
     }
 }
 
-impl From<OfflineArgs> for CliOfflineArgs {
-    fn from(offline_args: OfflineArgs) -> Self {
-        Self {
-            send_from: Some(offline_args.send_from.into()),
-        }
-    }
-}
+// impl From<OfflineArgs> for CliOfflineArgs {
+//     fn from(offline_args: OfflineArgs) -> Self {
+//         Self {
+//             send_from: Some(offline_args.send_from.into()),
+//         }
+//     }
+// }
 
 impl OfflineArgs {
     pub fn from(item: CliOfflineArgs) -> color_eyre::eyre::Result<Self> {

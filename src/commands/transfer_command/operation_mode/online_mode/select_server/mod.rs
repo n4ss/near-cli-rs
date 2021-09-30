@@ -1,31 +1,37 @@
 use dialoguer::{theme::ColorfulTheme, Select};
+use interactive_clap::ToCli;
+use interactive_clap_derive::InteractiveClap;
 use strum::{EnumDiscriminants, EnumIter, EnumMessage, IntoEnumIterator};
 
 pub mod server;
 
-#[derive(Debug, Clone, clap::Clap)]
-pub enum CliSelectServer {
-    /// предоставление данных для сервера https://rpc.testnet.near.org
-    Testnet(self::server::CliServer),
-    /// предоставление данных для сервера https://rpc.mainnet.near.org
-    Mainnet(self::server::CliServer),
-    /// предоставление данных для сервера https://rpc.betanet.near.org
-    Betanet(self::server::CliServer),
-    /// предоставление данных для сервера, указанного вручную
-    Custom(self::server::CliCustomServer),
-}
+// #[derive(Debug, Clone, clap::Clap)]
+// pub enum CliSelectServer {
+//     /// предоставление данных для сервера https://rpc.testnet.near.org
+//     Testnet(self::server::CliServer),
+//     /// предоставление данных для сервера https://rpc.mainnet.near.org
+//     Mainnet(self::server::CliServer),
+//     /// предоставление данных для сервера https://rpc.betanet.near.org
+//     Betanet(self::server::CliServer),
+//     /// предоставление данных для сервера, указанного вручную
+//     Custom(self::server::CliCustomServer),
+// }
 
-#[derive(Debug, Clone, EnumDiscriminants)]
+#[derive(Debug, Clone, EnumDiscriminants, InteractiveClap)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
 pub enum SelectServer {
+    /// Provide data for the server https://rpc.testnet.near.org
     #[strum_discriminants(strum(message = "Testnet"))]
     Testnet(self::server::Server),
+    /// Provide data for the server https://rpc.mainnet.near.org
     #[strum_discriminants(strum(message = "Mainnet"))]
     Mainnet(self::server::Server),
+    /// Provide data for the server https://rpc.betanet.near.org
     #[strum_discriminants(strum(message = "Betanet"))]
     Betanet(self::server::Server),
+    /// Provide data for a manually specified server
     #[strum_discriminants(strum(message = "Custom"))]
-    Custom(self::server::Server),
+    Custom(self::server::CustomServer),
 }
 
 impl CliSelectServer {
@@ -55,16 +61,16 @@ impl CliSelectServer {
     }
 }
 
-impl From<SelectServer> for CliSelectServer {
-    fn from(select_server: SelectServer) -> Self {
-        match select_server {
-            SelectServer::Testnet(server) => Self::Testnet(server.into()),
-            SelectServer::Mainnet(server) => Self::Mainnet(server.into()),
-            SelectServer::Betanet(server) => Self::Betanet(server.into()),
-            SelectServer::Custom(server) => Self::Custom(server.into()),
-        }
-    }
-}
+// impl From<SelectServer> for CliSelectServer {
+//     fn from(select_server: SelectServer) -> Self {
+//         match select_server {
+//             SelectServer::Testnet(server) => Self::Testnet(server.into()),
+//             SelectServer::Mainnet(server) => Self::Mainnet(server.into()),
+//             SelectServer::Betanet(server) => Self::Betanet(server.into()),
+//             SelectServer::Custom(server) => Self::Custom(server.into()),
+//         }
+//     }
+// }
 
 impl SelectServer {
     pub fn from(item: CliSelectServer) -> color_eyre::eyre::Result<Self> {
@@ -79,7 +85,7 @@ impl SelectServer {
                 cli_server.into_server(crate::common::ConnectionConfig::Betanet)?,
             )),
             CliSelectServer::Custom(cli_custom_server) => {
-                Ok(Self::Custom(cli_custom_server.into_server()?))
+                Ok(Self::Custom(cli_custom_server.into_custom_server()?))
             }
         }
     }

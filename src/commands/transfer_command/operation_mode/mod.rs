@@ -1,32 +1,32 @@
 use dialoguer::{theme::ColorfulTheme, Select};
-use strum::{EnumDiscriminants, EnumIter, EnumMessage, IntoEnumIterator};
 use interactive_clap::ToCli;
 use interactive_clap_derive::InteractiveClap;
+use strum::{EnumDiscriminants, EnumIter, EnumMessage, IntoEnumIterator};
 
 mod offline_mode;
 mod online_mode;
 
-/// инструмент выбора режима online/offline
-#[derive(Debug, Default, Clone, clap::Clap)]
-#[clap(
-    setting(clap::AppSettings::ColoredHelp),
-    setting(clap::AppSettings::DisableHelpSubcommand),
-    setting(clap::AppSettings::VersionlessSubcommands)
-)]
-pub struct CliOperationMode {
-    #[clap(subcommand)]
-    mode: Option<CliMode>,
-}
+// /// инструмент выбора режима online/offline
+// #[derive(Debug, Default, Clone, clap::Clap)]
+// #[clap(
+//     setting(clap::AppSettings::ColoredHelp),
+//     setting(clap::AppSettings::DisableHelpSubcommand),
+//     setting(clap::AppSettings::VersionlessSubcommands)
+// )]
+// pub struct CliOperationMode {
+//     #[clap(subcommand)]
+//     mode: Option<CliMode>,
+// }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, InteractiveClap)]
 pub struct OperationMode {
+    #[interactive_clap(subcommand)]
     pub mode: Mode,
 }
 
-impl interactive_clap::ToCli for OperationMode {
-    type CliVariant = CliOperationMode;
-}
-
+// impl interactive_clap::ToCli for OperationMode {
+//     type CliVariant = CliOperationMode;
+// }
 
 impl CliOperationMode {
     pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
@@ -37,13 +37,13 @@ impl CliOperationMode {
     }
 }
 
-impl From<OperationMode> for CliOperationMode {
-    fn from(item: OperationMode) -> Self {
-        Self {
-            mode: Some(item.mode.into()),
-        }
-    }
-}
+// impl From<OperationMode> for CliOperationMode {
+//     fn from(item: OperationMode) -> Self {
+//         Self {
+//             mode: Some(item.mode.into()),
+//         }
+//     }
+// }
 
 impl OperationMode {
     pub fn from(item: CliOperationMode) -> color_eyre::eyre::Result<Self> {
@@ -64,15 +64,15 @@ impl OperationMode {
     }
 }
 
-#[derive(Debug, Clone, clap::Clap)]
-pub enum CliMode {
-    /// Prepare and, optionally, submit a new transaction with online mode
-    Network(self::online_mode::CliNetworkArgs),
-    /// Prepare and, optionally, submit a new transaction with offline mode
-    Offline(self::offline_mode::CliOfflineArgs),
-}
+// #[derive(Debug, Clone, clap::Clap)]
+// pub enum CliMode {
+//     /// Prepare and, optionally, submit a new transaction with online mode
+//     Network(self::online_mode::CliNetworkArgs),
+//     /// Prepare and, optionally, submit a new transaction with offline mode
+//     Offline(self::offline_mode::CliOfflineArgs),
+// }
 
-#[derive(Debug, Clone, EnumDiscriminants)]
+#[derive(Debug, Clone, EnumDiscriminants, InteractiveClap)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
 pub enum Mode {
     /// Prepare and, optionally, submit a new transaction with online mode
@@ -102,18 +102,18 @@ impl CliMode {
     }
 }
 
-impl From<Mode> for CliMode {
-    fn from(mode: Mode) -> Self {
-        match mode {
-            Mode::Network(network_args) => {
-                Self::Network(self::online_mode::CliNetworkArgs::from(network_args))
-            }
-            Mode::Offline(offline_args) => {
-                Self::Offline(self::offline_mode::CliOfflineArgs::from(offline_args))
-            }
-        }
-    }
-}
+// impl From<Mode> for CliMode {
+//     fn from(mode: Mode) -> Self {
+//         match mode {
+//             Mode::Network(network_args) => {
+//                 Self::Network(self::online_mode::CliNetworkArgs::from(network_args))
+//             }
+//             Mode::Offline(offline_args) => {
+//                 Self::Offline(self::offline_mode::CliOfflineArgs::from(offline_args))
+//             }
+//         }
+//     }
+// }
 
 impl Mode {
     fn from(item: CliMode) -> color_eyre::eyre::Result<Self> {
