@@ -34,13 +34,10 @@ struct Args {
 
 impl CliArgs {
     pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
-        let mut args = self
-            .top_level_command
+        self.top_level_command
             .as_ref()
             .map(|subcommand| subcommand.to_cli_args())
-            .unwrap_or_default();
-        args.push_front("./near-cli".to_owned());
-        args
+            .unwrap_or_default()
     }
 }
 
@@ -87,7 +84,7 @@ fn main() -> CliResult {
     let process_result = actix::System::new().block_on(args.process());
 
     println!(
-        "Your console command:\n{}",
+        "Your console command:\n./near-cli {}",
         shell_words::join(&completed_cli.to_cli_args())
     );
 
