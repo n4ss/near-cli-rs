@@ -3,51 +3,59 @@ use interactive_clap::ToCli;
 use interactive_clap_derive::InteractiveClap;
 use std::str::FromStr;
 
-/// предустановленный RPC-сервер
-#[derive(Debug, Default, Clone, clap::Clap)]
-#[clap(
-    setting(clap::AppSettings::ColoredHelp),
-    setting(clap::AppSettings::DisableHelpSubcommand),
-    setting(clap::AppSettings::VersionlessSubcommands)
-)]
-pub struct CliServer {
-    #[clap(subcommand)]
-    pub send_from: Option<CliSendFrom>,
-}
+// /// предустановленный RPC-сервер
+// #[derive(Debug, Default, Clone, clap::Clap)]
+// #[clap(
+//     setting(clap::AppSettings::ColoredHelp),
+//     setting(clap::AppSettings::DisableHelpSubcommand),
+//     setting(clap::AppSettings::VersionlessSubcommands)
+// )]
+// pub struct CliServer {
+//     #[clap(subcommand)]
+//     pub send_from: Option<CliSendFrom>,
+// }
 
-/// данные для custom server
-#[derive(Debug, Default, Clone, clap::Clap)]
-#[clap(
-    setting(clap::AppSettings::ColoredHelp),
-    setting(clap::AppSettings::DisableHelpSubcommand),
-    setting(clap::AppSettings::VersionlessSubcommands)
-)]
-pub struct CliCustomServer {
-    #[clap(long)]
-    pub url: Option<crate::common::AvailableRpcServerUrl>,
-    #[clap(subcommand)]
-    send_from: Option<CliSendFrom>,
-}
+// /// данные для custom server
+// #[derive(Debug, Default, Clone, clap::Clap)]
+// #[clap(
+//     setting(clap::AppSettings::ColoredHelp),
+//     setting(clap::AppSettings::DisableHelpSubcommand),
+//     setting(clap::AppSettings::VersionlessSubcommands)
+// )]
+// pub struct CliCustomServer {
+//     #[clap(long)]
+//     pub url: Option<crate::common::AvailableRpcServerUrl>,
+//     #[clap(subcommand)]
+//     send_from: Option<CliSendFrom>,
+// }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, InteractiveClap)]
 pub struct Server {
-    pub connection_config: Option<crate::common::ConnectionConfig>,
+    #[interactive_clap(skip)]
+    pub connection_config: crate::common::ConnectionConfig,
+    #[interactive_clap(subcommand)]
     pub send_from: SendFrom,
 }
 
-#[derive(Debug, Clone)]
+impl ToCli for crate::common::ConnectionConfig {
+    type CliVariant = crate::common::ConnectionConfig;
+}
+
+#[derive(Debug, Clone, InteractiveClap)]
 pub struct CustomServer {
-    pub connection_config: Option<crate::common::ConnectionConfig>,
+    #[interactive_clap(long)]
+    pub url: crate::common::AvailableRpcServerUrl,
+    #[interactive_clap(subcommand)]
     pub send_from: SendFrom,
 }
 
-impl ToCli for Server {
-    type CliVariant = CliServer;
+impl ToCli for crate::common::AvailableRpcServerUrl {
+    type CliVariant = crate::common::AvailableRpcServerUrl;
 }
 
-impl ToCli for CustomServer {
-    type CliVariant = CliCustomServer;
-}
+// impl ToCli for CustomServer {
+//     type CliVariant = CliCustomServer;
+// }
 
 impl CliCustomServer {
     pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
@@ -64,33 +72,33 @@ impl CliCustomServer {
     }
 }
 
-impl From<Server> for CliCustomServer {
-    fn from(server: Server) -> Self {
-        Self {
-            url: Some(
-                crate::common::AvailableRpcServerUrl::from_str(
-                    server.connection_config.unwrap().rpc_url().as_str(),
-                )
-                .unwrap(),
-            ),
-            send_from: Some(server.send_from.into()),
-        }
-    }
-}
+// impl From<Server> for CliCustomServer {
+//     fn from(server: Server) -> Self {
+//         Self {
+//             url: Some(
+//                 crate::common::AvailableRpcServerUrl::from_str(
+//                     server.connection_config.unwrap().rpc_url().as_str(),
+//                 )
+//                 .unwrap(),
+//             ),
+//             send_from: Some(server.send_from.into()),
+//         }
+//     }
+// }
 
-impl From<CustomServer> for CliCustomServer {
-    fn from(server: CustomServer) -> Self {
-        Self {
-            url: Some(
-                crate::common::AvailableRpcServerUrl::from_str(
-                    server.connection_config.unwrap().rpc_url().as_str(),
-                )
-                .unwrap(),
-            ),
-            send_from: Some(server.send_from.into()),
-        }
-    }
-}
+// impl From<CustomServer> for CliCustomServer {
+//     fn from(server: CustomServer) -> Self {
+//         Self {
+//             url: Some(
+//                 crate::common::AvailableRpcServerUrl::from_str(
+//                     server.connection_config.unwrap().rpc_url().as_str(),
+//                 )
+//                 .unwrap(),
+//             ),
+//             send_from: Some(server.send_from.into()),
+//         }
+//     }
+// }
 
 impl CliServer {
     pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
@@ -101,13 +109,13 @@ impl CliServer {
     }
 }
 
-impl From<Server> for CliServer {
-    fn from(server: Server) -> Self {
-        Self {
-            send_from: Some(server.send_from.into()),
-        }
-    }
-}
+// impl From<Server> for CliServer {
+//     fn from(server: Server) -> Self {
+//         Self {
+//             send_from: Some(server.send_from.into()),
+//         }
+//     }
+// }
 
 impl CliServer {
     pub fn into_server(
@@ -119,7 +127,7 @@ impl CliServer {
             None => SendFrom::choose_send_from(Some(connection_config.clone()))?,
         };
         Ok(Server {
-            connection_config: Some(connection_config),
+            connection_config, //: Some(connection_config),
             send_from,
         })
     }
@@ -134,15 +142,12 @@ impl CliCustomServer {
                 .interact_text()
                 .unwrap(),
         };
-        let connection_config = Some(crate::common::ConnectionConfig::Custom { url: url.inner });
+        let connection_config = Some(crate::common::ConnectionConfig::from_custom_url(&url));
         let send_from = match self.send_from {
             Some(cli_send_from) => SendFrom::from(cli_send_from, connection_config.clone())?,
             None => SendFrom::choose_send_from(connection_config.clone())?,
         };
-        Ok(CustomServer {
-            connection_config,
-            send_from,
-        })
+        Ok(CustomServer { url, send_from })
     }
 }
 
@@ -152,7 +157,10 @@ impl Server {
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
     ) -> crate::CliResult {
         self.send_from
-            .process(prepopulated_unsigned_transaction, self.connection_config)
+            .process(
+                prepopulated_unsigned_transaction,
+                Some(self.connection_config),
+            )
             .await
     }
 }
@@ -162,8 +170,9 @@ impl CustomServer {
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
     ) -> crate::CliResult {
+        let connection_config = Some(crate::common::ConnectionConfig::from_custom_url(&self.url));
         self.send_from
-            .process(prepopulated_unsigned_transaction, self.connection_config)
+            .process(prepopulated_unsigned_transaction, connection_config)
             .await
     }
 }

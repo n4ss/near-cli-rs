@@ -1,4 +1,6 @@
+use interactive_clap::ToCli;
 use near_primitives::borsh::BorshSerialize;
+// use interactive_clap_derive::InteractiveClap;
 
 /// подписание сформированной транзакции в режиме manually
 #[derive(Debug, Default, Clone, clap::Clap)]
@@ -9,18 +11,33 @@ use near_primitives::borsh::BorshSerialize;
 )]
 pub struct CliSignManually {
     #[clap(long)]
-    signer_public_key: Option<near_crypto::PublicKey>,
+    signer_public_key: Option<crate::types::public_key::PublicKey>,
     #[clap(long)]
     nonce: Option<u64>,
     #[clap(long)]
-    block_hash: Option<near_primitives::hash::CryptoHash>,
+    block_hash: Option<crate::types::crypto_hash::CryptoHash>,
 }
 
 #[derive(Debug, Clone)]
 pub struct SignManually {
-    pub signer_public_key: near_crypto::PublicKey,
+    // #[interactive_clap(long)]
+    pub signer_public_key: crate::types::public_key::PublicKey,
+    // #[interactive_clap(long)]
     nonce: Option<u64>,
-    block_hash: Option<near_primitives::hash::CryptoHash>,
+    // #[interactive_clap(long)]
+    block_hash: Option<crate::types::crypto_hash::CryptoHash>,
+}
+
+impl ToCli for SignManually {
+    type CliVariant = CliSignManually;
+}
+
+impl ToCli for crate::types::public_key::PublicKey {
+    type CliVariant = crate::types::public_key::PublicKey;
+}
+
+impl ToCli for crate::types::crypto_hash::CryptoHash {
+    type CliVariant = crate::types::crypto_hash::CryptoHash;
 }
 
 impl CliSignManually {
@@ -57,7 +74,7 @@ impl SignManually {
         item: CliSignManually,
         connection_config: Option<crate::common::ConnectionConfig>,
     ) -> Self {
-        let signer_public_key: near_crypto::PublicKey = match item.signer_public_key {
+        let signer_public_key: crate::types::public_key::PublicKey = match item.signer_public_key {
             Some(cli_public_key) => cli_public_key,
             None => super::input_signer_public_key(),
         };
@@ -96,13 +113,13 @@ impl SignManually {
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         network_connection_config: Option<crate::common::ConnectionConfig>,
     ) -> color_eyre::eyre::Result<Option<near_primitives::views::FinalExecutionOutcomeView>> {
-        let public_key: near_crypto::PublicKey = self.signer_public_key.clone();
+        let public_key: near_crypto::PublicKey = self.signer_public_key.0.clone();
 
         let unsigned_transaction = match network_connection_config {
             None => near_primitives::transaction::Transaction {
                 public_key,
                 nonce: self.nonce.unwrap_or_default().clone(),
-                block_hash: self.block_hash.unwrap_or_default().clone(),
+                block_hash: self.block_hash.unwrap_or_default().0.clone(),
                 ..prepopulated_unsigned_transaction
             },
             Some(network_connection_config) => {

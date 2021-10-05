@@ -277,6 +277,12 @@ pub enum ConnectionConfig {
 }
 
 impl ConnectionConfig {
+    pub fn from_custom_url(custom_url: &AvailableRpcServerUrl) -> Self {
+        Self::Custom {
+            url: custom_url.inner.clone(),
+        }
+    }
+
     pub fn rpc_url(&self) -> url::Url {
         match self {
             Self::Testnet => crate::consts::TESTNET_API_SERVER_URL.parse().unwrap(),

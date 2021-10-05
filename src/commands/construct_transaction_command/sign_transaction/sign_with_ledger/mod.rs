@@ -1,4 +1,6 @@
 use dialoguer::Input;
+use interactive_clap::ToCli;
+use interactive_clap_derive::InteractiveClap;
 use near_primitives::borsh::BorshSerialize;
 
 /// Sign constructed transaction with Ledger
@@ -14,7 +16,7 @@ pub struct CliSignLedger {
     #[clap(long)]
     nonce: Option<u64>,
     #[clap(long)]
-    block_hash: Option<near_primitives::hash::CryptoHash>,
+    block_hash: Option<crate::types::crypto_hash::CryptoHash>,
     #[clap(subcommand)]
     submit: Option<super::Submit>,
 }
@@ -24,8 +26,12 @@ pub struct SignLedger {
     pub seed_phrase_hd_path: slip10::BIP32Path,
     pub signer_public_key: near_crypto::PublicKey,
     nonce: Option<u64>,
-    block_hash: Option<near_primitives::hash::CryptoHash>,
+    block_hash: Option<crate::types::crypto_hash::CryptoHash>,
     pub submit: Option<super::Submit>,
+}
+
+impl ToCli for SignLedger {
+    type CliVariant = CliSignLedger;
 }
 
 impl CliSignLedger {
@@ -133,7 +139,7 @@ impl SignLedger {
         let seed_phrase_hd_path = self.seed_phrase_hd_path.clone();
         let public_key = self.signer_public_key.clone();
         let nonce = self.nonce.unwrap_or_default().clone();
-        let block_hash = self.block_hash.unwrap_or_default().clone();
+        let block_hash = self.clone().block_hash.unwrap_or_default().0;
         let submit: Option<super::Submit> = self.submit.clone();
         match connection_config.clone() {
             None => {

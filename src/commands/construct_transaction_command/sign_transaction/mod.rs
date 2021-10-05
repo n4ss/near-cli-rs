@@ -1,4 +1,6 @@
 use dialoguer::{theme::ColorfulTheme, Input, Select};
+use interactive_clap::ToCli;
+use interactive_clap_derive::InteractiveClap;
 use near_primitives::borsh::BorshSerialize;
 use strum::{EnumDiscriminants, EnumIter, EnumMessage, IntoEnumIterator};
 
@@ -7,40 +9,44 @@ pub mod sign_with_keychain;
 pub mod sign_with_ledger;
 pub mod sign_with_private_key;
 
-#[derive(Debug, Clone, clap::Clap)]
-pub enum CliSignTransaction {
-    /// Provide arguments to sign a private key transaction
-    SignPrivateKey(self::sign_with_private_key::CliSignPrivateKey),
-    /// Provide arguments to sign a keychain transaction
-    SignWithKeychain(self::sign_with_keychain::CliSignKeychain),
-    /// Connect your Ledger device and sign transaction with it
-    SignWithLedger(self::sign_with_ledger::CliSignLedger),
-    /// Provide arguments to sign a manually transaction
-    SignManually(self::sign_manually::CliSignManually),
-}
+// #[derive(Debug, Clone, clap::Clap)]
+// pub enum CliSignTransaction {
+//     /// Provide arguments to sign a private key transaction
+//     SignPrivateKey(self::sign_with_private_key::CliSignPrivateKey),
+//     /// Provide arguments to sign a keychain transaction
+//     SignWithKeychain(self::sign_with_keychain::CliSignKeychain),
+//     /// Connect your Ledger device and sign transaction with it
+//     SignWithLedger(self::sign_with_ledger::CliSignLedger),
+//     /// Provide arguments to sign a manually transaction
+//     SignManually(self::sign_manually::CliSignManually),
+// }
 
-#[derive(Debug, Clone, EnumDiscriminants)]
+#[derive(Debug, Clone, EnumDiscriminants, InteractiveClap)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
 pub enum SignTransaction {
+    /// Provide arguments to sign a private key transaction
     #[strum_discriminants(strum(
         message = "Yes, I want to sign the transaction with my private key"
     ))]
     SignPrivateKey(self::sign_with_private_key::SignPrivateKey),
+    /// Provide arguments to sign a keychain transaction
     #[strum_discriminants(strum(message = "Yes, I want to sign the transaction with keychain"))]
     SignWithKeychain(self::sign_with_keychain::SignKeychain),
+    /// Connect your Ledger device and sign transaction with it
     #[strum_discriminants(strum(
         message = "Yes, I want to sign the transaction with Ledger device"
     ))]
     SignWithLedger(self::sign_with_ledger::SignLedger),
+    /// Provide arguments to sign a manually transaction
     #[strum_discriminants(strum(
         message = "No, I want to construct the transaction and sign it somewhere else"
     ))]
     SignManually(self::sign_manually::SignManually),
 }
 
-impl interactive_clap::ToCli for SignTransaction {
-    type CliVariant = CliSignTransaction;
-}
+// impl interactive_clap::ToCli for SignTransaction {
+//     type CliVariant = CliSignTransaction;
+// }
 
 impl CliSignTransaction {
     pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
@@ -69,24 +75,24 @@ impl CliSignTransaction {
     }
 }
 
-impl From<SignTransaction> for CliSignTransaction {
-    fn from(sign_transaction: SignTransaction) -> Self {
-        match sign_transaction {
-            SignTransaction::SignPrivateKey(sign_with_private_key) => Self::SignPrivateKey(
-                self::sign_with_private_key::CliSignPrivateKey::from(sign_with_private_key),
-            ),
-            SignTransaction::SignWithKeychain(sign_with_keychain) => Self::SignWithKeychain(
-                self::sign_with_keychain::CliSignKeychain::from(sign_with_keychain),
-            ),
-            SignTransaction::SignWithLedger(sign_with_ledger) => Self::SignWithLedger(
-                self::sign_with_ledger::CliSignLedger::from(sign_with_ledger),
-            ),
-            SignTransaction::SignManually(sign_manually) => {
-                Self::SignManually(self::sign_manually::CliSignManually::from(sign_manually))
-            }
-        }
-    }
-}
+// impl From<SignTransaction> for CliSignTransaction {
+//     fn from(sign_transaction: SignTransaction) -> Self {
+//         match sign_transaction {
+//             SignTransaction::SignPrivateKey(sign_with_private_key) => Self::SignPrivateKey(
+//                 self::sign_with_private_key::CliSignPrivateKey::from(sign_with_private_key),
+//             ),
+//             SignTransaction::SignWithKeychain(sign_with_keychain) => Self::SignWithKeychain(
+//                 self::sign_with_keychain::CliSignKeychain::from(sign_with_keychain),
+//             ),
+//             SignTransaction::SignWithLedger(sign_with_ledger) => Self::SignWithLedger(
+//                 self::sign_with_ledger::CliSignLedger::from(sign_with_ledger),
+//             ),
+//             SignTransaction::SignManually(sign_manually) => {
+//                 Self::SignManually(self::sign_manually::CliSignManually::from(sign_manually))
+//             }
+//         }
+//     }
+// }
 
 impl SignTransaction {
     pub fn from(
@@ -187,7 +193,7 @@ impl SignTransaction {
     }
 }
 
-fn input_signer_public_key() -> near_crypto::PublicKey {
+fn input_signer_public_key() -> crate::types::public_key::PublicKey {
     Input::new()
         .with_prompt("To create an unsigned transaction enter sender's public key")
         .interact_text()
@@ -215,7 +221,7 @@ fn input_access_key_nonce(public_key: &str) -> u64 {
         .unwrap()
 }
 
-fn input_block_hash() -> near_primitives::hash::CryptoHash {
+fn input_block_hash() -> crate::types::crypto_hash::CryptoHash {
     let input_block_hash: crate::common::BlockHashAsBase58 = Input::new()
         .with_prompt(
             "Enter recent block hash (query information about the hash of the last block with \
@@ -223,7 +229,7 @@ fn input_block_hash() -> near_primitives::hash::CryptoHash {
         )
         .interact_text()
         .unwrap();
-    input_block_hash.inner
+    crate::types::crypto_hash::CryptoHash(input_block_hash.inner)
 }
 
 #[derive(Debug, EnumDiscriminants, Clone, clap::Clap)]

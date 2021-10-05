@@ -3,10 +3,10 @@ extern crate shell_words;
 use interactive_clap::ToCli;
 use interactive_clap_derive::InteractiveClap;
 
-mod account_id;
 mod commands;
 mod common;
 mod consts;
+mod types;
 
 type CliResult = color_eyre::eyre::Result<()>;
 

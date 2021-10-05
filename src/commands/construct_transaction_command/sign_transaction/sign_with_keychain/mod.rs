@@ -1,4 +1,6 @@
 extern crate dirs;
+use interactive_clap::ToCli;
+use interactive_clap_derive::InteractiveClap;
 
 use serde::Deserialize;
 
@@ -13,7 +15,7 @@ pub struct CliSignKeychain {
     #[clap(long)]
     nonce: Option<u64>,
     #[clap(long)]
-    block_hash: Option<near_primitives::hash::CryptoHash>,
+    block_hash: Option<crate::types::crypto_hash::CryptoHash>,
     #[clap(subcommand)]
     submit: Option<super::Submit>,
 }
@@ -21,8 +23,12 @@ pub struct CliSignKeychain {
 #[derive(Debug, Clone)]
 pub struct SignKeychain {
     nonce: Option<u64>,
-    block_hash: Option<near_primitives::hash::CryptoHash>,
+    block_hash: Option<crate::types::crypto_hash::CryptoHash>,
     pub submit: Option<super::Submit>,
+}
+
+impl ToCli for SignKeychain {
+    type CliVariant = CliSignKeychain;
 }
 
 impl CliSignKeychain {
@@ -212,7 +218,7 @@ impl SignKeychain {
         let account_json: User = serde_json::from_str(&data)
             .map_err(|err| color_eyre::Report::msg(format!("Error reading data: {}", err)))?;
         let sign_with_private_key = super::sign_with_private_key::SignPrivateKey {
-            signer_public_key: account_json.public_key,
+            signer_public_key: crate::types::public_key::PublicKey(account_json.public_key),
             signer_private_key: account_json.private_key,
             nonce: self.nonce.clone(),
             block_hash: self.block_hash.clone(),

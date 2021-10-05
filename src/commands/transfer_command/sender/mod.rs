@@ -17,7 +17,7 @@ use interactive_clap_derive::InteractiveClap;
 
 #[derive(Debug, Clone, InteractiveClap)]
 pub struct Sender {
-    pub sender_account_id: crate::account_id::AccountId,
+    pub sender_account_id: crate::types::account_id::AccountId,
     #[interactive_clap(subcommand)]
     pub send_to: super::receiver::SendTo,
 }
@@ -54,7 +54,7 @@ impl Sender {
         item: CliSender,
         connection_config: Option<crate::common::ConnectionConfig>,
     ) -> color_eyre::eyre::Result<Self> {
-        let sender_account_id: crate::account_id::AccountId = match item.sender_account_id {
+        let sender_account_id: crate::types::account_id::AccountId = match item.sender_account_id {
             Some(cli_sender_account_id) => match &connection_config {
                 Some(network_connection_config) => match crate::common::check_account_id(
                     network_connection_config.clone(),
@@ -88,9 +88,9 @@ impl Sender {
 impl Sender {
     fn input_sender_account_id(
         connection_config: Option<crate::common::ConnectionConfig>,
-    ) -> color_eyre::eyre::Result<crate::account_id::AccountId> {
+    ) -> color_eyre::eyre::Result<crate::types::account_id::AccountId> {
         loop {
-            let account_id: crate::account_id::AccountId = Input::new()
+            let account_id: crate::types::account_id::AccountId = Input::new()
                 .with_prompt("What is the account ID of the sender?")
                 .interact_text()
                 .unwrap();
