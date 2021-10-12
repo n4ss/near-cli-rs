@@ -1,6 +1,6 @@
 use dialoguer::{theme::ColorfulTheme, Select};
 use interactive_clap::ToCli;
-use interactive_clap_derive::InteractiveClap;
+use interactive_clap_derive::{InteractiveClap, ToCliArgs};
 use strum::{EnumDiscriminants, EnumIter, EnumMessage, IntoEnumIterator};
 
 // pub mod add_command;
@@ -12,28 +12,6 @@ pub mod construct_transaction_command;
 pub mod transfer_command;
 pub mod utils_command;
 // pub mod view_command;
-
-// #[derive(Debug, Clone, clap::Clap)]
-// pub enum CliTopLevelCommand {
-//     /// Use these to add access key, contract code, stake proposal, sub-account, implicit-account
-//     Add(self::add_command::CliAddAction),
-//     /// Prepare and, optionally, submit a new transaction
-//     ConstructTransaction(self::construct_transaction_command::operation_mode::CliOperationMode),
-//     /// Use these to delete access key, sub-account
-//     Delete(self::delete_command::CliDeleteAction),
-//     /// Execute function (contract method)
-//     Execute(self::execute_command::CliOptionMethod),
-//     /// Use these to generate static shell completions
-//     GenerateShellCompletions(self::generate_shell_completions_command::CliGenerateShellCompletions),
-//     /// Use these to login with wallet authorization
-//     Login(self::login::operation_mode::CliOperationMode),
-//     /// Use these to transfer tokens
-//     Transfer(self::transfer_command::CliCurrency),
-//     /// Helpers
-//     Utils(self::utils_command::CliUtils),
-//     /// View account, contract code, contract state, transaction, nonce, recent block hash
-//     View(self::view_command::CliViewQueryRequest),
-// }
 
 #[derive(Debug, Clone, EnumDiscriminants, InteractiveClap)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
@@ -59,75 +37,6 @@ pub enum TopLevelCommand {
     // #[strum_discriminants(strum(message = "Helpers"))]
     // Utils(self::utils_command::Utils),
 }
-
-impl CliTopLevelCommand {
-    pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
-        match self {
-            // Self::Login(subcommand) => {
-            //     let mut args = subcommand.to_cli_args();
-            //     args.push_front("login".to_owned());
-            //     args
-            // }
-            // Self::Execute(subcommand) => {
-            //     let mut args = subcommand.to_cli_args();
-            //     args.push_front("execute".to_owned());
-            //     args
-            // }
-            // Self::Add(subcommand) => {
-            //     let mut args = subcommand.to_cli_args();
-            //     args.push_front("add".to_owned());
-            //     args
-            // }
-            // Self::Delete(subcommand) => {
-            //     let mut args = subcommand.to_cli_args();
-            //     args.push_front("delete".to_owned());
-            //     args
-            // }
-            Self::Transfer(subcommand) => {
-                let mut args = subcommand.to_cli_args();
-                args.push_front("transfer".to_owned());
-                args
-            }
-            // Self::View(subcommand) => {
-            //     let mut args = subcommand.to_cli_args();
-            //     args.push_front("view".to_owned());
-            //     args
-            // }
-            // Self::ConstructTransaction(subcommand) => {
-            //     let mut args = subcommand.to_cli_args();
-            //     args.push_front("construct-transaction".to_owned());
-            //     args
-            // }
-            // Self::Utils(subcommand) => {
-            //     let mut args = subcommand.to_cli_args();
-            //     args.push_front("utils".to_owned());
-            //     args
-            // }
-            // Self::GenerateShellCompletions(_) => std::collections::VecDeque::new(),
-        }
-    }
-}
-
-// impl interactive_clap::ToCli for TopLevelCommand {
-//     type CliVariant = CliTopLevelCommand;
-// }
-
-// impl From<TopLevelCommand> for CliTopLevelCommand {
-//     fn from(top_level_command: TopLevelCommand) -> Self {
-//         match top_level_command {
-//             TopLevelCommand::Login(operation_mode) => Self::Login(operation_mode.into()),
-//             TopLevelCommand::Execute(option_method) => Self::Execute(option_method.into()),
-//             TopLevelCommand::Add(add_action) => Self::Add(add_action.into()),
-//             TopLevelCommand::Delete(delete_action) => Self::Delete(delete_action.into()),
-//             TopLevelCommand::Transfer(currency) => Self::Transfer(currency.into()),
-//             TopLevelCommand::View(view_query_request) => Self::View(view_query_request.into()),
-//             TopLevelCommand::ConstructTransaction(operation_mode) => {
-//                 Self::ConstructTransaction(operation_mode.into())
-//             }
-//             TopLevelCommand::Utils(utils) => Self::Utils(utils.into()),
-//         }
-//     }
-// }
 
 impl From<CliTopLevelCommand> for TopLevelCommand {
     fn from(cli_top_level_command: CliTopLevelCommand) -> Self {
@@ -166,21 +75,35 @@ impl From<CliTopLevelCommand> for TopLevelCommand {
     }
 }
 
+pub fn prompt_variant<T>(prompt: &str) -> T
+where
+    T: IntoEnumIterator + EnumMessage,
+    T: Copy + Clone,
+{
+    let variants = T::iter().collect::<Vec<_>>();
+    let actions = variants
+        .iter()
+        .map(|p| {
+            p.get_message()
+                .unwrap_or_else(|| "error[This entry does not have an option message!!]")
+                .to_owned()
+        })
+        .collect::<Vec<_>>();
+
+    let selected = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt(prompt)
+        .items(&actions)
+        .default(0)
+        .interact()
+        .unwrap();
+
+    variants[selected]
+}
+
 impl TopLevelCommand {
     pub fn choose_command() -> Self {
         println!();
-        let variants = TopLevelCommandDiscriminants::iter().collect::<Vec<_>>();
-        let commands = variants
-            .iter()
-            .map(|p| p.get_message().unwrap().to_owned())
-            .collect::<Vec<_>>();
-        let selection = Select::with_theme(&ColorfulTheme::default())
-            .with_prompt("Choose your action")
-            .items(&commands)
-            .default(0)
-            .interact()
-            .unwrap();
-        let cli_top_level_command = match variants[selection] {
+        let cli_top_level_command = match prompt_variant("Choose transaction action") {
             // TopLevelCommandDiscriminants::Add => CliTopLevelCommand::Add(Default::default()),
             // TopLevelCommandDiscriminants::ConstructTransaction => {
             //     CliTopLevelCommand::ConstructTransaction(Default::default())

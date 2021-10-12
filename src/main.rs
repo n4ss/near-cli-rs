@@ -1,8 +1,7 @@
 use clap::Clap;
 extern crate shell_words;
 use interactive_clap::ToCli;
-use interactive_clap_derive::InteractiveClap;
-
+use interactive_clap_derive::{InteractiveClap, ToCliArgs};
 mod commands;
 mod common;
 mod consts;
@@ -10,44 +9,11 @@ mod types;
 
 type CliResult = color_eyre::eyre::Result<()>;
 
-/// near-cli is a toolbox for interacting with NEAR protocol
-// #[derive(Debug, Clap)]
-// #[clap(
-//     version,
-//     author,
-//     about,
-//     setting(clap::AppSettings::ColoredHelp),
-//     setting(clap::AppSettings::DisableHelpSubcommand),
-//     setting(clap::AppSettings::VersionlessSubcommands),
-//     // setting(clap::AppSettings::NextLineHelp)
-// )]
-// struct CliArgs {
-//     #[clap(subcommand)]
-//     top_level_command: Option<self::commands::CliTopLevelCommand>,
-// }
-
 #[derive(Debug, Clone, InteractiveClap)]
 struct Args {
     #[interactive_clap(subcommand)]
     top_level_command: self::commands::TopLevelCommand,
 }
-
-impl CliArgs {
-    pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
-        self.top_level_command
-            .as_ref()
-            .map(|subcommand| subcommand.to_cli_args())
-            .unwrap_or_default()
-    }
-}
-
-// impl From<Args> for CliArgs {
-//     fn from(cli_args: Args) -> Self {
-//         Self {
-//             top_level_command: Some(cli_args.top_level_command.into()),
-//         }
-//     }
-// }
 
 impl From<CliArgs> for Args {
     fn from(cli_args: CliArgs) -> Self {

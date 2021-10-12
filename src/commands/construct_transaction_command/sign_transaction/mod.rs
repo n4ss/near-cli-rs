@@ -1,6 +1,6 @@
 use dialoguer::{theme::ColorfulTheme, Input, Select};
 use interactive_clap::ToCli;
-use interactive_clap_derive::InteractiveClap;
+use interactive_clap_derive::{InteractiveClap, ToCliArgs};
 use near_primitives::borsh::BorshSerialize;
 use strum::{EnumDiscriminants, EnumIter, EnumMessage, IntoEnumIterator};
 
@@ -8,18 +8,6 @@ mod sign_manually;
 pub mod sign_with_keychain;
 pub mod sign_with_ledger;
 pub mod sign_with_private_key;
-
-// #[derive(Debug, Clone, clap::Clap)]
-// pub enum CliSignTransaction {
-//     /// Provide arguments to sign a private key transaction
-//     SignPrivateKey(self::sign_with_private_key::CliSignPrivateKey),
-//     /// Provide arguments to sign a keychain transaction
-//     SignWithKeychain(self::sign_with_keychain::CliSignKeychain),
-//     /// Connect your Ledger device and sign transaction with it
-//     SignWithLedger(self::sign_with_ledger::CliSignLedger),
-//     /// Provide arguments to sign a manually transaction
-//     SignManually(self::sign_manually::CliSignManually),
-// }
 
 #[derive(Debug, Clone, EnumDiscriminants, InteractiveClap)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
@@ -43,56 +31,6 @@ pub enum SignTransaction {
     ))]
     SignManually(self::sign_manually::SignManually),
 }
-
-// impl interactive_clap::ToCli for SignTransaction {
-//     type CliVariant = CliSignTransaction;
-// }
-
-impl CliSignTransaction {
-    pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
-        match self {
-            CliSignTransaction::SignPrivateKey(subcommand) => {
-                let mut args = subcommand.to_cli_args();
-                args.push_front("sign-private-key".to_owned());
-                args
-            }
-            CliSignTransaction::SignWithKeychain(subcommand) => {
-                let mut args = subcommand.to_cli_args();
-                args.push_front("sign-with-keychain".to_owned());
-                args
-            }
-            CliSignTransaction::SignWithLedger(subcommand) => {
-                let mut args = subcommand.to_cli_args();
-                args.push_front("sign-with-ledger".to_owned());
-                args
-            }
-            CliSignTransaction::SignManually(subcommand) => {
-                let mut args = subcommand.to_cli_args();
-                args.push_front("sign-manually".to_owned());
-                args
-            }
-        }
-    }
-}
-
-// impl From<SignTransaction> for CliSignTransaction {
-//     fn from(sign_transaction: SignTransaction) -> Self {
-//         match sign_transaction {
-//             SignTransaction::SignPrivateKey(sign_with_private_key) => Self::SignPrivateKey(
-//                 self::sign_with_private_key::CliSignPrivateKey::from(sign_with_private_key),
-//             ),
-//             SignTransaction::SignWithKeychain(sign_with_keychain) => Self::SignWithKeychain(
-//                 self::sign_with_keychain::CliSignKeychain::from(sign_with_keychain),
-//             ),
-//             SignTransaction::SignWithLedger(sign_with_ledger) => Self::SignWithLedger(
-//                 self::sign_with_ledger::CliSignLedger::from(sign_with_ledger),
-//             ),
-//             SignTransaction::SignManually(sign_manually) => {
-//                 Self::SignManually(self::sign_manually::CliSignManually::from(sign_manually))
-//             }
-//         }
-//     }
-// }
 
 impl SignTransaction {
     pub fn from(
@@ -232,7 +170,7 @@ fn input_block_hash() -> crate::types::crypto_hash::CryptoHash {
     crate::types::crypto_hash::CryptoHash(input_block_hash.inner)
 }
 
-#[derive(Debug, EnumDiscriminants, Clone, clap::Clap)]
+#[derive(Debug, EnumDiscriminants, Clone, clap::Clap, ToCliArgs)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
 pub enum Submit {
     #[strum_discriminants(strum(
@@ -243,22 +181,27 @@ pub enum Submit {
     Display,
 }
 
-impl Submit {
-    pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
-        match self {
-            Self::Send => {
-                let mut args = std::collections::VecDeque::new();
-                args.push_front("send".to_owned());
-                args
-            }
-            Self::Display => {
-                let mut args = std::collections::VecDeque::new();
-                args.push_front("display".to_owned());
-                args
-            }
+impl std::str::FromStr for Submit {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "send" => Ok(Self::Send),
+            "display" => Ok(Self::Display),
+            _ => Err("There are only options 'send' and 'display'".to_string()),
         }
     }
+}
 
+impl std::fmt::Display for Submit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Send => write!(f, "send"),
+            Self::Display => write!(f, "display"),
+        }
+    }
+}
+
+impl Submit {
     pub fn choose_submit(connection_config: Option<crate::common::ConnectionConfig>) -> Self {
         println!();
         let variants = SubmitDiscriminants::iter().collect::<Vec<_>>();

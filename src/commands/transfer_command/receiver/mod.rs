@@ -1,38 +1,12 @@
 use dialoguer::Input;
 use interactive_clap::ToCli;
-use interactive_clap_derive::InteractiveClap;
-
-// #[derive(Debug, Clone, clap::Clap)]
-// pub enum CliSendTo {
-//     /// Specify a receiver
-//     Receiver(CliReceiver),
-// }
+use interactive_clap_derive::{InteractiveClap, ToCliArgs};
 
 #[derive(Debug, Clone, InteractiveClap)]
 pub enum SendTo {
     /// Specify a receiver
     Receiver(Receiver),
 }
-
-impl CliSendTo {
-    pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
-        match self {
-            Self::Receiver(subcommand) => {
-                let mut args = subcommand.to_cli_args();
-                args.push_front("receiver".to_owned());
-                args
-            }
-        }
-    }
-}
-
-// impl From<SendTo> for CliSendTo {
-//     fn from(send_to: SendTo) -> Self {
-//         match send_to {
-//             SendTo::Receiver(receiver) => Self::Receiver(CliReceiver::from(receiver)),
-//         }
-//     }
-// }
 
 impl SendTo {
     pub fn from(
@@ -76,19 +50,6 @@ impl SendTo {
     }
 }
 
-// /// данные о получателе транзакции
-// #[derive(Debug, Default, Clone, clap::Clap)]
-// #[clap(
-//     setting(clap::AppSettings::ColoredHelp),
-//     setting(clap::AppSettings::DisableHelpSubcommand),
-//     setting(clap::AppSettings::VersionlessSubcommands)
-// )]
-// pub struct CliReceiver {
-//     receiver_account_id: Option<near_primitives::types::AccountId>,
-//     #[clap(subcommand)]
-//     transfer: Option<super::transfer_near_tokens_type::CliTransfer>,
-// }
-
 #[derive(Debug, Clone, InteractiveClap)]
 pub struct Receiver {
     pub receiver_account_id: crate::types::account_id::AccountId,
@@ -99,31 +60,6 @@ pub struct Receiver {
 impl ToCli for crate::types::account_id::AccountId {
     type CliVariant = crate::types::account_id::AccountId;
 }
-
-impl CliReceiver {
-    pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
-        let mut args = self
-            .transfer
-            .as_ref()
-            .map(|subcommand| subcommand.to_cli_args())
-            .unwrap_or_default();
-        if let Some(receiver_account_id) = &self.receiver_account_id {
-            args.push_front(receiver_account_id.to_string());
-        }
-        args
-    }
-}
-
-// impl From<Receiver> for CliReceiver {
-//     fn from(receiver: Receiver) -> Self {
-//         Self {
-//             receiver_account_id: Some(receiver.receiver_account_id),
-//             transfer: Some(super::transfer_near_tokens_type::CliTransfer::from(
-//                 receiver.transfer,
-//             )),
-//         }
-//     }
-// }
 
 impl Receiver {
     fn from(

@@ -17,12 +17,3 @@ impl FromStr for CryptoHash {
         Ok(Self(crypto_hash))
     }
 }
-
-impl From<std::option::Option<CryptoHash>> for CryptoHash {
-    fn from(option: std::option::Option<CryptoHash>) -> Self {
-        match option {
-            Some(crypto_hash) => crypto_hash,
-            None => Self::default(),
-        }
-    }
-}

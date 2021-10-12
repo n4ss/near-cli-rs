@@ -1,45 +1,12 @@
 pub mod select_server;
 use interactive_clap::ToCli;
-use interactive_clap_derive::InteractiveClap;
-
-// /// аргументы, необходимые для создания транзакции в online mode
-// #[derive(Debug, Default, Clone, clap::Clap)]
-// #[clap(
-//     setting(clap::AppSettings::ColoredHelp),
-//     setting(clap::AppSettings::DisableHelpSubcommand),
-//     setting(clap::AppSettings::VersionlessSubcommands)
-// )]
-// pub struct CliNetworkArgs {
-//     #[clap(subcommand)]
-//     selected_server: Option<self::select_server::CliSelectServer>,
-// }
+use interactive_clap_derive::{InteractiveClap, ToCliArgs};
 
 #[derive(Debug, Clone, InteractiveClap)]
 pub struct NetworkArgs {
     #[interactive_clap(subcommand)]
     selected_server: self::select_server::SelectServer,
 }
-
-// impl ToCli for NetworkArgs {
-//     type CliVariant = CliNetworkArgs;
-// }
-
-impl CliNetworkArgs {
-    pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
-        self.selected_server
-            .as_ref()
-            .map(|subcommand| subcommand.to_cli_args())
-            .unwrap_or_default()
-    }
-}
-
-// impl From<NetworkArgs> for CliNetworkArgs {
-//     fn from(network_args: NetworkArgs) -> Self {
-//         Self {
-//             selected_server: Some(network_args.selected_server.into()),
-//         }
-//     }
-// }
 
 impl NetworkArgs {
     pub fn from(item: CliNetworkArgs) -> color_eyre::eyre::Result<Self> {

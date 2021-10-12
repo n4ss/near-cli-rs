@@ -1,12 +1,6 @@
 use dialoguer::Input;
 use interactive_clap::ToCli;
-use interactive_clap_derive::InteractiveClap;
-
-// #[derive(Debug, Clone, clap::Clap)]
-// pub enum CliTransfer {
-//     /// Enter an amount
-//     Amount(CliTransferNEARTokensAction),
-// }
+use interactive_clap_derive::{InteractiveClap, ToCliArgs};
 
 #[derive(Debug, Clone, InteractiveClap)]
 pub enum Transfer {
@@ -14,27 +8,6 @@ pub enum Transfer {
     Amount(TransferNEARTokensAction),
 }
 
-impl CliTransfer {
-    pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
-        match self {
-            Self::Amount(subcommand) => {
-                let mut args = subcommand.to_cli_args();
-                args.push_front("amount".to_owned());
-                args
-            }
-        }
-    }
-}
-
-// impl From<Transfer> for CliTransfer {
-//     fn from(transfer: Transfer) -> Self {
-//         match transfer {
-//             Transfer::Amount(transfer_near_token_action) => {
-//                 Self::Amount(transfer_near_token_action.into())
-//             }
-//         }
-//     }
-// }
 impl Transfer {
     pub fn from(
         item: CliTransfer,
@@ -80,21 +53,6 @@ impl Transfer {
     }
 }
 
-/// создание перевода токенов
-// #[derive(Debug, Default, Clone, clap::Clap)]
-// #[clap(
-//     setting(clap::AppSettings::ColoredHelp),
-//     setting(clap::AppSettings::DisableHelpSubcommand),
-//     setting(clap::AppSettings::VersionlessSubcommands)
-// )]
-// pub struct CliTransferNEARTokensAction {
-//     amount: Option<crate::common::NearBalance>,
-//     #[clap(subcommand)]
-//     sign_option: Option<
-//         crate::commands::construct_transaction_command::sign_transaction::CliSignTransaction,
-//     >,
-// }
-
 #[derive(Debug, Clone, InteractiveClap)]
 pub struct TransferNEARTokensAction {
     pub amount: crate::common::NearBalance,
@@ -103,36 +61,9 @@ pub struct TransferNEARTokensAction {
         crate::commands::construct_transaction_command::sign_transaction::SignTransaction,
 }
 
-// impl ToCli for TransferNEARTokensAction {
-//     type CliVariant = CliTransferNEARTokensAction;
-// }
-
 impl ToCli for crate::common::NearBalance {
     type CliVariant = crate::common::NearBalance;
 }
-
-impl CliTransferNEARTokensAction {
-    pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
-        let mut args = self
-            .sign_option
-            .as_ref()
-            .map(|subcommand| subcommand.to_cli_args())
-            .unwrap_or_default();
-        if let Some(amount) = &self.amount {
-            args.push_front(amount.to_string());
-        }
-        args
-    }
-}
-
-// impl From<TransferNEARTokensAction> for CliTransferNEARTokensAction {
-//     fn from(transfer_near_tokens_action: TransferNEARTokensAction) -> Self {
-//         Self {
-//             amount: Some(transfer_near_tokens_action.amount),
-//             sign_option: Some(transfer_near_tokens_action.sign_option.into()),
-//         }
-//     }
-// }
 
 impl TransferNEARTokensAction {
     fn from(

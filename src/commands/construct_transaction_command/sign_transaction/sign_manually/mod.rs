@@ -1,35 +1,15 @@
 use interactive_clap::ToCli;
+use interactive_clap_derive::{InteractiveClap, ToCliArgs};
 use near_primitives::borsh::BorshSerialize;
-// use interactive_clap_derive::InteractiveClap;
 
-/// подписание сформированной транзакции в режиме manually
-#[derive(Debug, Default, Clone, clap::Clap)]
-#[clap(
-    setting(clap::AppSettings::ColoredHelp),
-    setting(clap::AppSettings::DisableHelpSubcommand),
-    setting(clap::AppSettings::VersionlessSubcommands)
-)]
-pub struct CliSignManually {
-    #[clap(long)]
-    signer_public_key: Option<crate::types::public_key::PublicKey>,
-    #[clap(long)]
-    nonce: Option<u64>,
-    #[clap(long)]
-    block_hash: Option<crate::types::crypto_hash::CryptoHash>,
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, InteractiveClap)]
 pub struct SignManually {
-    // #[interactive_clap(long)]
+    #[interactive_clap(long)]
     pub signer_public_key: crate::types::public_key::PublicKey,
-    // #[interactive_clap(long)]
+    #[interactive_clap(long)]
     nonce: Option<u64>,
-    // #[interactive_clap(long)]
+    #[interactive_clap(long)]
     block_hash: Option<crate::types::crypto_hash::CryptoHash>,
-}
-
-impl ToCli for SignManually {
-    type CliVariant = CliSignManually;
 }
 
 impl ToCli for crate::types::public_key::PublicKey {
@@ -38,35 +18,6 @@ impl ToCli for crate::types::public_key::PublicKey {
 
 impl ToCli for crate::types::crypto_hash::CryptoHash {
     type CliVariant = crate::types::crypto_hash::CryptoHash;
-}
-
-impl CliSignManually {
-    pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
-        let mut args = std::collections::VecDeque::new();
-        if let Some(signer_public_key) = &self.signer_public_key {
-            args.push_front(signer_public_key.to_string());
-            args.push_front("--signer-public-key".to_owned())
-        }
-        if let Some(nonce) = &self.nonce {
-            args.push_front(nonce.to_string());
-            args.push_front("--nonce".to_owned())
-        }
-        if let Some(block_hash) = &self.block_hash {
-            args.push_front(block_hash.to_string());
-            args.push_front("--block-hash".to_owned())
-        }
-        args
-    }
-}
-
-impl From<SignManually> for CliSignManually {
-    fn from(sign_manually: SignManually) -> Self {
-        Self {
-            signer_public_key: Some(sign_manually.signer_public_key),
-            nonce: sign_manually.nonce,
-            block_hash: sign_manually.block_hash,
-        }
-    }
 }
 
 impl SignManually {

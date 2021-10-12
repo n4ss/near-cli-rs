@@ -1,63 +1,21 @@
 extern crate dirs;
 use interactive_clap::ToCli;
-use interactive_clap_derive::InteractiveClap;
+use interactive_clap_derive::{InteractiveClap, ToCliArgs};
 
 use serde::Deserialize;
 
-/// подписание сформированной транзакции с помощью файла с ключами
-#[derive(Debug, Default, Clone, clap::Clap)]
-#[clap(
-    setting(clap::AppSettings::ColoredHelp),
-    setting(clap::AppSettings::DisableHelpSubcommand),
-    setting(clap::AppSettings::VersionlessSubcommands)
-)]
-pub struct CliSignKeychain {
-    #[clap(long)]
-    nonce: Option<u64>,
-    #[clap(long)]
-    block_hash: Option<crate::types::crypto_hash::CryptoHash>,
-    #[clap(subcommand)]
-    submit: Option<super::Submit>,
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, InteractiveClap)]
 pub struct SignKeychain {
+    #[interactive_clap(long)]
     nonce: Option<u64>,
+    #[interactive_clap(long)]
     block_hash: Option<crate::types::crypto_hash::CryptoHash>,
+    #[interactive_clap(subcommand)]
     pub submit: Option<super::Submit>,
 }
 
-impl ToCli for SignKeychain {
-    type CliVariant = CliSignKeychain;
-}
-
-impl CliSignKeychain {
-    pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
-        let mut args = self
-            .submit
-            .as_ref()
-            .map(|subcommand| subcommand.to_cli_args())
-            .unwrap_or_default();
-        if let Some(nonce) = &self.nonce {
-            args.push_front(nonce.to_string());
-            args.push_front("--nonce".to_owned())
-        }
-        if let Some(block_hash) = &self.block_hash {
-            args.push_front(block_hash.to_string());
-            args.push_front("--block-hash".to_owned())
-        }
-        args
-    }
-}
-
-impl From<SignKeychain> for CliSignKeychain {
-    fn from(sign_keychain: SignKeychain) -> Self {
-        Self {
-            nonce: sign_keychain.nonce,
-            block_hash: sign_keychain.block_hash,
-            submit: sign_keychain.submit,
-        }
-    }
+impl ToCli for super::Submit {
+    type CliVariant = super::Submit;
 }
 
 impl SignKeychain {

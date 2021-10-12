@@ -1,21 +1,9 @@
 use dialoguer::{theme::ColorfulTheme, Select};
 use interactive_clap::ToCli;
-use interactive_clap_derive::InteractiveClap;
+use interactive_clap_derive::{InteractiveClap, ToCliArgs};
 use strum::{EnumDiscriminants, EnumIter, EnumMessage, IntoEnumIterator};
 
 pub mod server;
-
-// #[derive(Debug, Clone, clap::Clap)]
-// pub enum CliSelectServer {
-//     /// предоставление данных для сервера https://rpc.testnet.near.org
-//     Testnet(self::server::CliServer),
-//     /// предоставление данных для сервера https://rpc.mainnet.near.org
-//     Mainnet(self::server::CliServer),
-//     /// предоставление данных для сервера https://rpc.betanet.near.org
-//     Betanet(self::server::CliServer),
-//     /// предоставление данных для сервера, указанного вручную
-//     Custom(self::server::CliCustomServer),
-// }
 
 #[derive(Debug, Clone, EnumDiscriminants, InteractiveClap)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
@@ -33,44 +21,6 @@ pub enum SelectServer {
     #[strum_discriminants(strum(message = "Custom"))]
     Custom(self::server::CustomServer),
 }
-
-impl CliSelectServer {
-    pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
-        match self {
-            Self::Testnet(subcommand) => {
-                let mut args = subcommand.to_cli_args();
-                args.push_front("testnet".to_owned());
-                args
-            }
-            Self::Mainnet(subcommand) => {
-                let mut args = subcommand.to_cli_args();
-                args.push_front("mainnet".to_owned());
-                args
-            }
-            Self::Betanet(subcommand) => {
-                let mut args = subcommand.to_cli_args();
-                args.push_front("betanet".to_owned());
-                args
-            }
-            Self::Custom(subcommand) => {
-                let mut args = subcommand.to_cli_args();
-                args.push_front("custom".to_owned());
-                args
-            }
-        }
-    }
-}
-
-// impl From<SelectServer> for CliSelectServer {
-//     fn from(select_server: SelectServer) -> Self {
-//         match select_server {
-//             SelectServer::Testnet(server) => Self::Testnet(server.into()),
-//             SelectServer::Mainnet(server) => Self::Mainnet(server.into()),
-//             SelectServer::Betanet(server) => Self::Betanet(server.into()),
-//             SelectServer::Custom(server) => Self::Custom(server.into()),
-//         }
-//     }
-// }
 
 impl SelectServer {
     pub fn from(item: CliSelectServer) -> color_eyre::eyre::Result<Self> {

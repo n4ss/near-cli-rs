@@ -1312,6 +1312,7 @@ dependencies = [
 [[package]]
 name = "interactive_clap"
 version = "0.1.0"
+source = "git+https://github.com/FroVolod/interactive-clap?rev=d9329061e105eba0ce6ced463e047abef4730286#d9329061e105eba0ce6ced463e047abef4730286"
 
 [[package]]
 name = "interactive_clap"
@@ -1321,6 +1322,7 @@ source = "git+https://github.com/FroVolod/interactive-clap#8c544f9fa8b146f4695a3
 [[package]]
 name = "interactive_clap_derive"
 version = "0.1.0"
+source = "git+https://github.com/FroVolod/interactive-clap-derive?rev=1fac92b1cb8d5afad3b5d3b061c20a1179e4dac0#1fac92b1cb8d5afad3b5d3b061c20a1179e4dac0"
 dependencies = [
  "clap",
  "clap_generate",
@@ -1586,7 +1588,7 @@ dependencies = [
  "dirs",
  "ed25519-dalek",
  "hex",
- "interactive_clap 0.1.0",
+ "interactive_clap 0.1.0 (git+https://github.com/FroVolod/interactive-clap?rev=d9329061e105eba0ce6ced463e047abef4730286)",
  "interactive_clap_derive",
  "near-crypto",
  "near-jsonrpc-client",

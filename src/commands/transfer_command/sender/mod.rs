@@ -1,19 +1,6 @@
 use dialoguer::Input;
 use interactive_clap::ToCli;
-use interactive_clap_derive::InteractiveClap;
-
-// /// данные об отправителе транзакции
-// #[derive(Debug, Default, Clone, clap::Clap)]
-// #[clap(
-//     setting(clap::AppSettings::ColoredHelp),
-//     setting(clap::AppSettings::DisableHelpSubcommand),
-//     setting(clap::AppSettings::VersionlessSubcommands)
-// )]
-// pub struct CliSender {
-//     pub sender_account_id: Option<crate::account_id::AccountId>,
-//     #[clap(subcommand)]
-//     send_to: Option<super::receiver::CliSendTo>,
-// }
+use interactive_clap_derive::{InteractiveClap, ToCliArgs};
 
 #[derive(Debug, Clone, InteractiveClap)]
 pub struct Sender {
@@ -21,33 +8,6 @@ pub struct Sender {
     #[interactive_clap(subcommand)]
     pub send_to: super::receiver::SendTo,
 }
-
-// impl ToCli for crate::account_id::AccountId {
-//     type CliVariant = crate::account_id::AccountId;
-// }
-
-impl CliSender {
-    pub fn to_cli_args(&self) -> std::collections::VecDeque<String> {
-        let mut args = self
-            .send_to
-            .as_ref()
-            .map(|subcommand| subcommand.to_cli_args())
-            .unwrap_or_default();
-        if let Some(sender_account_id) = &self.sender_account_id {
-            args.push_front(sender_account_id.to_string());
-        }
-        args
-    }
-}
-
-// impl From<Sender> for CliSender {
-//     fn from(sender: Sender) -> Self {
-//         Self {
-//             sender_account_id: Some(sender.sender_account_id),
-//             send_to: Some(super::receiver::CliSendTo::from(sender.send_to)),
-//         }
-//     }
-// }
 
 impl Sender {
     pub fn from(
