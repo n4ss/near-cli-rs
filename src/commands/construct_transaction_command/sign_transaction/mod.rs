@@ -181,26 +181,6 @@ pub enum Submit {
     Display,
 }
 
-impl std::str::FromStr for Submit {
-    type Err = String;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "send" => Ok(Self::Send),
-            "display" => Ok(Self::Display),
-            _ => Err("There are only options 'send' and 'display'".to_string()),
-        }
-    }
-}
-
-impl std::fmt::Display for Submit {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Send => write!(f, "send"),
-            Self::Display => write!(f, "display"),
-        }
-    }
-}
-
 impl Submit {
     pub fn choose_submit(connection_config: Option<crate::common::ConnectionConfig>) -> Self {
         println!();
