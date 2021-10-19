@@ -15,6 +15,7 @@ pub mod utils_command;
 
 #[derive(Debug, Clone, EnumDiscriminants, InteractiveClap)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
+///Choose transaction action
 pub enum TopLevelCommand {
     // #[strum_discriminants(strum(message = "Login with wallet authorization"))]
     // Login(self::login::operation_mode::OperationMode),
@@ -38,12 +39,15 @@ pub enum TopLevelCommand {
     // Utils(self::utils_command::Utils),
 }
 
-impl From<CliTopLevelCommand> for TopLevelCommand {
-    fn from(cli_top_level_command: CliTopLevelCommand) -> Self {
+impl TopLevelCommand {
+    pub fn from(
+        cli_top_level_command: CliTopLevelCommand,
+        context: crate::common::Context,
+    ) -> color_eyre::eyre::Result<Self> {
         match cli_top_level_command {
-            // CliTopLevelCommand::Add(cli_add_action) => {
-            //     TopLevelCommand::Add(self::add_command::AddAction::from(cli_add_action).unwrap())
-            // }
+            // CliTopLevelCommand::Add(cli_add_action) => Ok(TopLevelCommand::Add(
+            //     self::add_command::AddAction::from(cli_add_action)?,
+            // )),
             // CliTopLevelCommand::ConstructTransaction(cli_operation_mode) => {
             //     TopLevelCommand::ConstructTransaction(
             //         self::construct_transaction_command::operation_mode::OperationMode::from(
@@ -64,9 +68,9 @@ impl From<CliTopLevelCommand> for TopLevelCommand {
             // CliTopLevelCommand::Login(cli_option_method) => {
             //     TopLevelCommand::Login(cli_option_method.into())
             // }
-            CliTopLevelCommand::Transfer(cli_currency) => TopLevelCommand::Transfer(
-                self::transfer_command::Currency::from(cli_currency).unwrap(),
-            ),
+            CliTopLevelCommand::Transfer(cli_currency) => Ok(TopLevelCommand::Transfer(
+                self::transfer_command::Currency::from(cli_currency, context)?,
+            )),
             // CliTopLevelCommand::Utils(cli_util) => TopLevelCommand::Utils(cli_util.into()),
             // CliTopLevelCommand::View(cli_view_query_request) => {
             //     TopLevelCommand::View(cli_view_query_request.into())
@@ -75,52 +79,27 @@ impl From<CliTopLevelCommand> for TopLevelCommand {
     }
 }
 
-pub fn prompt_variant<T>(prompt: &str) -> T
-where
-    T: IntoEnumIterator + EnumMessage,
-    T: Copy + Clone,
-{
-    let variants = T::iter().collect::<Vec<_>>();
-    let actions = variants
-        .iter()
-        .map(|p| {
-            p.get_message()
-                .unwrap_or_else(|| "error[This entry does not have an option message!!]")
-                .to_owned()
-        })
-        .collect::<Vec<_>>();
-
-    let selected = Select::with_theme(&ColorfulTheme::default())
-        .with_prompt(prompt)
-        .items(&actions)
-        .default(0)
-        .interact()
-        .unwrap();
-
-    variants[selected]
-}
-
 impl TopLevelCommand {
-    pub fn choose_command() -> Self {
-        println!();
-        let cli_top_level_command = match prompt_variant("Choose transaction action") {
-            // TopLevelCommandDiscriminants::Add => CliTopLevelCommand::Add(Default::default()),
-            // TopLevelCommandDiscriminants::ConstructTransaction => {
-            //     CliTopLevelCommand::ConstructTransaction(Default::default())
-            // }
-            // TopLevelCommandDiscriminants::Delete => CliTopLevelCommand::Delete(Default::default()),
-            // TopLevelCommandDiscriminants::Execute => {
-            //     CliTopLevelCommand::Execute(Default::default())
-            // }
-            // TopLevelCommandDiscriminants::Login => CliTopLevelCommand::Login(Default::default()),
-            TopLevelCommandDiscriminants::Transfer => {
-                CliTopLevelCommand::Transfer(Default::default())
-            }
-            // TopLevelCommandDiscriminants::Utils => CliTopLevelCommand::Utils(Default::default()),
-            // TopLevelCommandDiscriminants::View => CliTopLevelCommand::View(Default::default()),
-        };
-        Self::from(cli_top_level_command)
-    }
+    // pub fn choose_command(context: crate::common::Context) -> color_eyre::eyre::Result<Self> {
+    //     println!();
+    //     let cli_top_level_command = match crate::common::prompt_variant("Choose transaction action") {
+    //         TopLevelCommandDiscriminants::Add => CliTopLevelCommand::Add(Default::default()),
+    //         // TopLevelCommandDiscriminants::ConstructTransaction => {
+    //         //     CliTopLevelCommand::ConstructTransaction(Default::default())
+    //         // }
+    //         // TopLevelCommandDiscriminants::Delete => CliTopLevelCommand::Delete(Default::default()),
+    //         // TopLevelCommandDiscriminants::Execute => {
+    //         //     CliTopLevelCommand::Execute(Default::default())
+    //         // }
+    //         // TopLevelCommandDiscriminants::Login => CliTopLevelCommand::Login(Default::default()),
+    //         TopLevelCommandDiscriminants::Transfer => {
+    //             CliTopLevelCommand::Transfer(Default::default())
+    //         }
+    //         // TopLevelCommandDiscriminants::Utils => CliTopLevelCommand::Utils(Default::default()),
+    //         // TopLevelCommandDiscriminants::View => CliTopLevelCommand::View(Default::default()),
+    //     };
+    //     Ok(Self::from(cli_top_level_command, context)?)
+    // }
 
     pub async fn process(self) -> crate::CliResult {
         let unsigned_transaction = near_primitives::transaction::Transaction {

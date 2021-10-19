@@ -7,6 +7,7 @@ pub mod server;
 
 #[derive(Debug, Clone, EnumDiscriminants, InteractiveClap)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
+///Select NEAR protocol RPC server
 pub enum SelectServer {
     /// Provide data for the server https://rpc.testnet.near.org
     #[strum_discriminants(strum(message = "Testnet"))]
@@ -23,46 +24,49 @@ pub enum SelectServer {
 }
 
 impl SelectServer {
-    pub fn from(item: CliSelectServer) -> color_eyre::eyre::Result<Self> {
+    pub fn from(
+        item: CliSelectServer,
+        context: crate::common::Context,
+    ) -> color_eyre::eyre::Result<Self> {
         match item {
             CliSelectServer::Testnet(cli_server) => Ok(Self::Testnet(
-                cli_server.into_server(crate::common::ConnectionConfig::Testnet)?,
+                cli_server.into_server(crate::common::ConnectionConfig::Testnet, context)?,
             )),
             CliSelectServer::Mainnet(cli_server) => Ok(Self::Mainnet(
-                cli_server.into_server(crate::common::ConnectionConfig::Mainnet)?,
+                cli_server.into_server(crate::common::ConnectionConfig::Mainnet, context)?,
             )),
             CliSelectServer::Betanet(cli_server) => Ok(Self::Betanet(
-                cli_server.into_server(crate::common::ConnectionConfig::Betanet)?,
+                cli_server.into_server(crate::common::ConnectionConfig::Betanet, context)?,
             )),
             CliSelectServer::Custom(cli_custom_server) => {
-                Ok(Self::Custom(cli_custom_server.into_custom_server()?))
+                Ok(Self::Custom(cli_custom_server.into_custom_server(context)?))
             }
         }
     }
 }
 
 impl SelectServer {
-    pub fn choose_server() -> color_eyre::eyre::Result<Self> {
-        println!();
-        let variants = SelectServerDiscriminants::iter().collect::<Vec<_>>();
-        let servers = variants
-            .iter()
-            .map(|p| p.get_message().unwrap().to_owned())
-            .collect::<Vec<_>>();
-        let selected_server = Select::with_theme(&ColorfulTheme::default())
-            .with_prompt("Select NEAR protocol RPC server:")
-            .items(&servers)
-            .default(0)
-            .interact()
-            .unwrap();
-        let cli_select_server = match variants[selected_server] {
-            SelectServerDiscriminants::Testnet => CliSelectServer::Testnet(Default::default()),
-            SelectServerDiscriminants::Mainnet => CliSelectServer::Mainnet(Default::default()),
-            SelectServerDiscriminants::Betanet => CliSelectServer::Betanet(Default::default()),
-            SelectServerDiscriminants::Custom => CliSelectServer::Custom(Default::default()),
-        };
-        Ok(Self::from(cli_select_server)?)
-    }
+    // pub fn choose_server(context: crate::common::Context) -> color_eyre::eyre::Result<Self> {
+    //     println!();
+    //     let variants = SelectServerDiscriminants::iter().collect::<Vec<_>>();
+    //     let servers = variants
+    //         .iter()
+    //         .map(|p| p.get_message().unwrap().to_owned())
+    //         .collect::<Vec<_>>();
+    //     let selected_server = Select::with_theme(&ColorfulTheme::default())
+    //         .with_prompt("Select NEAR protocol RPC server:")
+    //         .items(&servers)
+    //         .default(0)
+    //         .interact()
+    //         .unwrap();
+    //     let cli_select_server = match variants[selected_server] {
+    //         SelectServerDiscriminants::Testnet => CliSelectServer::Testnet(Default::default()),
+    //         SelectServerDiscriminants::Mainnet => CliSelectServer::Mainnet(Default::default()),
+    //         SelectServerDiscriminants::Betanet => CliSelectServer::Betanet(Default::default()),
+    //         SelectServerDiscriminants::Custom => CliSelectServer::Custom(Default::default()),
+    //     };
+    //     Ok(Self::from(cli_select_server, context)?)
+    // }
 
     pub async fn process(
         self,

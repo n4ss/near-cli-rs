@@ -8,12 +8,15 @@ pub struct OfflineArgs {
 }
 
 impl OfflineArgs {
-    pub fn from(item: CliOfflineArgs) -> color_eyre::eyre::Result<Self> {
+    pub fn from(
+        item: CliOfflineArgs,
+        context: crate::common::Context,
+    ) -> color_eyre::eyre::Result<Self> {
         let send_from = match item.send_from {
             Some(cli_send_from) => {
-                super::online_mode::select_server::server::SendFrom::from(cli_send_from, None)?
+                super::online_mode::select_server::server::SendFrom::from(cli_send_from, context)?
             }
-            None => super::online_mode::select_server::server::SendFrom::choose_send_from(None)?,
+            None => super::online_mode::select_server::server::SendFrom::choose_variant(context)?,
         };
         Ok(Self { send_from })
     }

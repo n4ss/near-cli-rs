@@ -1,8 +1,10 @@
 use dialoguer::Input;
 use interactive_clap::ToCli;
 use interactive_clap_derive::{InteractiveClap, ToCliArgs};
+use strum::{EnumDiscriminants, EnumIter, EnumMessage, IntoEnumIterator};
 
 #[derive(Debug, Clone, InteractiveClap)]
+#[interactive_clap(disable_strum_discriminants)]
 pub enum SendTo {
     /// Specify a receiver
     Receiver(Receiver),
@@ -11,12 +13,11 @@ pub enum SendTo {
 impl SendTo {
     pub fn from(
         item: CliSendTo,
-        connection_config: Option<crate::common::ConnectionConfig>,
-        sender_account_id: crate::types::account_id::AccountId,
+        context: crate::common::Context,
     ) -> color_eyre::eyre::Result<Self> {
         match item {
             CliSendTo::Receiver(cli_receiver) => {
-                let receiver = Receiver::from(cli_receiver, connection_config, sender_account_id)?;
+                let receiver = Receiver::from(cli_receiver, context)?;
                 Ok(Self::Receiver(receiver))
             }
         }
@@ -24,16 +25,12 @@ impl SendTo {
 }
 
 impl SendTo {
-    pub fn send_to(
-        connection_config: Option<crate::common::ConnectionConfig>,
-        sender_account_id: crate::types::account_id::AccountId,
-    ) -> color_eyre::eyre::Result<Self> {
-        Ok(Self::from(
-            CliSendTo::Receiver(Default::default()),
-            connection_config,
-            sender_account_id,
-        )?)
-    }
+    // pub fn send_to(context: crate::common::Context) -> color_eyre::eyre::Result<Self> {
+    //     Ok(Self::from(
+    //         CliSendTo::Receiver(Default::default()),
+    //         context,
+    //     )?)
+    // }
 
     pub async fn process(
         self,
@@ -62,42 +59,34 @@ impl ToCli for crate::types::account_id::AccountId {
 }
 
 impl Receiver {
-    fn from(
-        item: CliReceiver,
-        connection_config: Option<crate::common::ConnectionConfig>,
-        sender_account_id: crate::types::account_id::AccountId,
-    ) -> color_eyre::eyre::Result<Self> {
-        let receiver_account_id: crate::types::account_id::AccountId =
-            match item.receiver_account_id {
-                Some(cli_receiver_account_id) => match &connection_config {
-                    Some(network_connection_config) => match crate::common::check_account_id(
-                        network_connection_config.clone(),
-                        cli_receiver_account_id.clone().into(),
-                    )? {
-                        Some(_) => cli_receiver_account_id,
-                        None => {
-                            if !crate::common::is_64_len_hex(&cli_receiver_account_id) {
-                                println!("Account <{}> doesn't exist", cli_receiver_account_id);
-                                Receiver::input_receiver_account_id(connection_config.clone())?
-                            } else {
-                                cli_receiver_account_id
-                            }
+    fn from(item: CliReceiver, context: crate::common::Context) -> color_eyre::eyre::Result<Self> {
+        let receiver_account_id: crate::types::account_id::AccountId = match item
+            .receiver_account_id
+        {
+            Some(cli_receiver_account_id) => match context.connection_config.clone() {
+                Some(network_connection_config) => match crate::common::check_account_id(
+                    network_connection_config.clone(),
+                    cli_receiver_account_id.clone().into(),
+                )? {
+                    Some(_) => cli_receiver_account_id,
+                    None => {
+                        if !crate::common::is_64_len_hex(&cli_receiver_account_id) {
+                            println!("Account <{}> doesn't exist", cli_receiver_account_id);
+                            Receiver::input_receiver_account_id(context.connection_config.clone())?
+                        } else {
+                            cli_receiver_account_id
                         }
-                    },
-                    None => cli_receiver_account_id,
+                    }
                 },
-                None => Receiver::input_receiver_account_id(connection_config.clone())?,
-            };
+                None => cli_receiver_account_id,
+            },
+            None => Receiver::input_receiver_account_id(context.connection_config.clone())?,
+        };
         let transfer: super::transfer_near_tokens_type::Transfer = match item.transfer {
-            Some(cli_transfer) => super::transfer_near_tokens_type::Transfer::from(
-                cli_transfer,
-                connection_config,
-                sender_account_id.into(),
-            )?,
-            None => super::transfer_near_tokens_type::Transfer::choose_transfer_near(
-                connection_config,
-                sender_account_id.into(),
-            )?,
+            Some(cli_transfer) => {
+                super::transfer_near_tokens_type::Transfer::from(cli_transfer, context)?
+            }
+            None => super::transfer_near_tokens_type::Transfer::choose_variant(context)?,
         };
         Ok(Self {
             receiver_account_id,

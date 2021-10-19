@@ -12,8 +12,9 @@ pub struct Sender {
 impl Sender {
     pub fn from(
         item: CliSender,
-        connection_config: Option<crate::common::ConnectionConfig>,
+        context: crate::common::Context,
     ) -> color_eyre::eyre::Result<Self> {
+        let connection_config = context.connection_config.clone();
         let sender_account_id: crate::types::account_id::AccountId = match item.sender_account_id {
             Some(cli_sender_account_id) => match &connection_config {
                 Some(network_connection_config) => match crate::common::check_account_id(
@@ -30,13 +31,13 @@ impl Sender {
             },
             None => Sender::input_sender_account_id(connection_config.clone())?,
         };
+        let context = crate::common::Context {
+            sender_account_id: Some(sender_account_id.clone().into()),
+            ..context
+        };
         let send_to: super::receiver::SendTo = match item.send_to {
-            Some(cli_send_to) => super::receiver::SendTo::from(
-                cli_send_to,
-                connection_config,
-                sender_account_id.clone(),
-            )?,
-            None => super::receiver::SendTo::send_to(connection_config, sender_account_id.clone())?,
+            Some(cli_send_to) => super::receiver::SendTo::from(cli_send_to, context)?,
+            None => super::receiver::SendTo::choose_variant(context)?,
         };
         Ok(Self {
             sender_account_id,

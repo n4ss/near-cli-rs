@@ -21,11 +21,10 @@ impl ToCli for super::Submit {
 impl SignKeychain {
     pub fn from(
         item: CliSignKeychain,
-        connection_config: Option<crate::common::ConnectionConfig>,
-        sender_account_id: near_primitives::types::AccountId,
+        context: crate::common::Context,
     ) -> color_eyre::eyre::Result<Self> {
         let submit: Option<super::Submit> = item.submit;
-        match connection_config {
+        match context.connection_config {
             Some(_) => Ok(Self {
                 nonce: None,
                 block_hash: None,
@@ -33,7 +32,13 @@ impl SignKeychain {
             }),
             None => {
                 let home_dir = dirs::home_dir().expect("Impossible to get your home dir!");
-                let file_name = format!("{}.json", sender_account_id);
+                let file_name = format!(
+                    "{}.json",
+                    context
+                        .sender_account_id
+                        .clone()
+                        .expect("wrong sender_account_id")
+                );
                 let mut path = std::path::PathBuf::from(&home_dir);
                 let dir_name = crate::consts::DIR_NAME_KEY_CHAIN;
                 path.push(dir_name);

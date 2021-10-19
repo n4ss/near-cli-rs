@@ -1,6 +1,7 @@
 use dialoguer::Input;
 use interactive_clap::ToCli;
 use interactive_clap_derive::{InteractiveClap, ToCliArgs};
+use strum::{EnumDiscriminants, EnumIter, EnumMessage, IntoEnumIterator};
 
 #[derive(Debug, Clone, InteractiveClap)]
 pub struct Server {
@@ -30,10 +31,15 @@ impl CliServer {
     pub fn into_server(
         self,
         connection_config: crate::common::ConnectionConfig,
+        context: crate::common::Context,
     ) -> color_eyre::eyre::Result<Server> {
+        let context = crate::common::Context {
+            connection_config: Some(connection_config.clone()),
+            ..context
+        };
         let send_from = match self.send_from {
-            Some(cli_send_from) => SendFrom::from(cli_send_from, Some(connection_config.clone()))?,
-            None => SendFrom::choose_send_from(Some(connection_config.clone()))?,
+            Some(cli_send_from) => SendFrom::from(cli_send_from, context)?,
+            None => SendFrom::choose_variant(context)?,
         };
         Ok(Server {
             connection_config: Some(connection_config),
@@ -43,7 +49,10 @@ impl CliServer {
 }
 
 impl CliCustomServer {
-    pub fn into_custom_server(self) -> color_eyre::eyre::Result<CustomServer> {
+    pub fn into_custom_server(
+        self,
+        context: crate::common::Context,
+    ) -> color_eyre::eyre::Result<CustomServer> {
         let url: crate::common::AvailableRpcServerUrl = match self.url {
             Some(url) => url,
             None => Input::new()
@@ -52,9 +61,13 @@ impl CliCustomServer {
                 .unwrap(),
         };
         let connection_config = Some(crate::common::ConnectionConfig::from_custom_url(&url));
+        let context = crate::common::Context {
+            connection_config: connection_config.clone(),
+            ..context
+        };
         let send_from = match self.send_from {
-            Some(cli_send_from) => SendFrom::from(cli_send_from, connection_config.clone())?,
-            None => SendFrom::choose_send_from(connection_config.clone())?,
+            Some(cli_send_from) => SendFrom::from(cli_send_from, context)?,
+            None => SendFrom::choose_variant(context)?,
         };
         Ok(CustomServer { url, send_from })
     }
@@ -84,6 +97,7 @@ impl CustomServer {
 }
 
 #[derive(Debug, Clone, InteractiveClap)]
+#[interactive_clap(disable_strum_discriminants)]
 pub enum SendFrom {
     /// Specify a sender
     Sender(crate::commands::transfer_command::sender::Sender),
@@ -92,28 +106,23 @@ pub enum SendFrom {
 impl SendFrom {
     pub fn from(
         item: CliSendFrom,
-        connection_config: Option<crate::common::ConnectionConfig>,
+        context: crate::common::Context,
     ) -> color_eyre::eyre::Result<Self> {
         match item {
             CliSendFrom::Sender(cli_sender) => Ok(Self::Sender(
-                crate::commands::transfer_command::sender::Sender::from(
-                    cli_sender,
-                    connection_config,
-                )?,
+                crate::commands::transfer_command::sender::Sender::from(cli_sender, context)?,
             )),
         }
     }
 }
 
 impl SendFrom {
-    pub fn choose_send_from(
-        connection_config: Option<crate::common::ConnectionConfig>,
-    ) -> color_eyre::eyre::Result<Self> {
-        Ok(Self::from(
-            CliSendFrom::Sender(Default::default()),
-            connection_config,
-        )?)
-    }
+    // pub fn choose_send_from(context: crate::common::Context) -> color_eyre::eyre::Result<Self> {
+    //     Ok(Self::from(
+    //         CliSendFrom::Sender(Default::default()),
+    //         context,
+    //     )?)
+    // }
 
     pub async fn process(
         self,

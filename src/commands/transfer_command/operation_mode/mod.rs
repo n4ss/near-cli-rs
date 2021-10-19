@@ -13,10 +13,13 @@ pub struct OperationMode {
 }
 
 impl OperationMode {
-    pub fn from(item: CliOperationMode) -> color_eyre::eyre::Result<Self> {
+    pub fn from(
+        item: CliOperationMode,
+        context: crate::common::Context,
+    ) -> color_eyre::eyre::Result<Self> {
         let mode = match item.mode {
-            Some(cli_mode) => Mode::from(cli_mode)?,
-            None => Mode::choose_mode()?,
+            Some(cli_mode) => Mode::from(cli_mode, context)?,
+            None => Mode::choose_variant(context)?,
         };
         Ok(Self { mode })
     }
@@ -33,6 +36,8 @@ impl OperationMode {
 
 #[derive(Debug, Clone, EnumDiscriminants, InteractiveClap)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
+///To construct a transaction you will need to provide information about sender (signer) and receiver accounts, and actions that needs to be performed.
+///Do you want to derive some information required for transaction construction automatically querying it online?
 pub enum Mode {
     /// Prepare and, optionally, submit a new transaction with online mode
     #[strum_discriminants(strum(message = "Yes, I keep it simple"))]
@@ -45,41 +50,41 @@ pub enum Mode {
 }
 
 impl Mode {
-    fn from(item: CliMode) -> color_eyre::eyre::Result<Self> {
+    fn from(item: CliMode, context: crate::common::Context) -> color_eyre::eyre::Result<Self> {
         match item {
             CliMode::Network(cli_network_args) => Ok(Self::Network(
-                self::online_mode::NetworkArgs::from(cli_network_args)?,
+                self::online_mode::NetworkArgs::from(cli_network_args, context)?,
             )),
             CliMode::Offline(cli_offline_args) => Ok(Self::Offline(
-                self::offline_mode::OfflineArgs::from(cli_offline_args)?,
+                self::offline_mode::OfflineArgs::from(cli_offline_args, context)?,
             )),
         }
     }
 }
 
 impl Mode {
-    fn choose_mode() -> color_eyre::eyre::Result<Self> {
-        println!();
-        let variants = ModeDiscriminants::iter().collect::<Vec<_>>();
-        let modes = variants
-            .iter()
-            .map(|p| p.get_message().unwrap().to_owned())
-            .collect::<Vec<_>>();
-        let selected_mode = Select::with_theme(&ColorfulTheme::default())
-            .with_prompt(
-                "To construct a transaction you will need to provide information about sender (signer) and receiver accounts, and actions that needs to be performed.
-                 \nDo you want to derive some information required for transaction construction automatically querying it online?"
-            )
-            .items(&modes)
-            .default(0)
-            .interact()
-            .unwrap();
-        let cli_mode = match variants[selected_mode] {
-            ModeDiscriminants::Network => CliMode::Network(Default::default()),
-            ModeDiscriminants::Offline => CliMode::Offline(Default::default()),
-        };
-        Ok(Self::from(cli_mode)?)
-    }
+    // fn choose_mode(context: crate::common::Context) -> color_eyre::eyre::Result<Self> {
+    //     println!();
+    //     let variants = ModeDiscriminants::iter().collect::<Vec<_>>();
+    //     let modes = variants
+    //         .iter()
+    //         .map(|p| p.get_message().unwrap().to_owned())
+    //         .collect::<Vec<_>>();
+    //     let selected_mode = Select::with_theme(&ColorfulTheme::default())
+    //         .with_prompt(
+    //             "To construct a transaction you will need to provide information about sender (signer) and receiver accounts, and actions that needs to be performed.
+    //              \nDo you want to derive some information required for transaction construction automatically querying it online?"
+    //         )
+    //         .items(&modes)
+    //         .default(0)
+    //         .interact()
+    //         .unwrap();
+    //     let cli_mode = match variants[selected_mode] {
+    //         ModeDiscriminants::Network => CliMode::Network(Default::default()),
+    //         ModeDiscriminants::Offline => CliMode::Offline(Default::default()),
+    //     };
+    //     Ok(Self::from(cli_mode, context)?)
+    // }
 
     pub async fn process(
         self,

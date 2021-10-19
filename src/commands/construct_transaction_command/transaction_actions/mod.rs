@@ -586,12 +586,16 @@ impl SkipAction {
         let sign_option: super::sign_transaction::SignTransaction = match item.sign_option {
             Some(cli_sign_transaction) => super::sign_transaction::SignTransaction::from(
                 cli_sign_transaction,
-                connection_config,
-                sender_account_id,
+                crate::common::Context {
+                    connection_config,
+                    sender_account_id: Some(sender_account_id),
+                },
             )?,
             None => super::sign_transaction::SignTransaction::choose_sign_option(
-                connection_config,
-                sender_account_id,
+                crate::common::Context {
+                    connection_config,
+                    sender_account_id: Some(sender_account_id),
+                },
             )?,
         };
         Ok(Self { sign_option })
