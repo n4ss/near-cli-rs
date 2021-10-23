@@ -7,6 +7,7 @@ pub mod server;
 
 #[derive(Debug, Clone, EnumDiscriminants, InteractiveClap)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
+#[interactive_clap(context = crate::common::Context)]
 ///Select NEAR protocol RPC server
 pub enum SelectServer {
     /// Provide data for the server https://rpc.testnet.near.org

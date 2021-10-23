@@ -5,6 +5,7 @@ use strum::{EnumDiscriminants, EnumIter, EnumMessage, IntoEnumIterator};
 
 #[derive(Debug, Clone, InteractiveClap)]
 #[interactive_clap(disable_strum_discriminants)]
+#[interactive_clap(context = crate::common::Context)]
 pub enum SendTo {
     /// Specify a receiver
     Receiver(Receiver),

@@ -4,6 +4,7 @@ use interactive_clap_derive::{InteractiveClap, ToCliArgs};
 use strum::{EnumDiscriminants, EnumIter, EnumMessage, IntoEnumIterator};
 
 #[derive(Debug, Clone, InteractiveClap)]
+#[interactive_clap(context = crate::common::Context)]
 #[interactive_clap(disable_strum_discriminants)]
 pub enum Transfer {
     /// Enter an amount to transfer

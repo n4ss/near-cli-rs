@@ -11,6 +11,7 @@ pub mod sign_with_private_key;
 
 #[derive(Debug, Clone, EnumDiscriminants, InteractiveClap)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
+#[interactive_clap(context = crate::common::Context)]
 ///Would you like to sign the transaction?
 pub enum SignTransaction {
     // /// Provide arguments to sign a private key transaction

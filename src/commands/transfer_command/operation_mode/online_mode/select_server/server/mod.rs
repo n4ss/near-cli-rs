@@ -98,6 +98,7 @@ impl CustomServer {
 
 #[derive(Debug, Clone, InteractiveClap)]
 #[interactive_clap(disable_strum_discriminants)]
+#[interactive_clap(context = crate::common::Context)]
 pub enum SendFrom {
     /// Specify a sender
     Sender(crate::commands::transfer_command::sender::Sender),

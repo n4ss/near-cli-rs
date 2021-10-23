@@ -36,6 +36,7 @@ impl OperationMode {
 
 #[derive(Debug, Clone, EnumDiscriminants, InteractiveClap)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
+#[interactive_clap(context = crate::common::Context)]
 ///To construct a transaction you will need to provide information about sender (signer) and receiver accounts, and actions that needs to be performed.
 ///Do you want to derive some information required for transaction construction automatically querying it online?
 pub enum Mode {

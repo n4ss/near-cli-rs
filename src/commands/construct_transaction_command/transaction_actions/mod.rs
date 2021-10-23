@@ -591,12 +591,12 @@ impl SkipAction {
                     sender_account_id: Some(sender_account_id),
                 },
             )?,
-            None => super::sign_transaction::SignTransaction::choose_variant(
-                crate::common::Context {
+            None => {
+                super::sign_transaction::SignTransaction::choose_variant(crate::common::Context {
                     connection_config,
                     sender_account_id: Some(sender_account_id),
-                },
-            )?,
+                })?
+            }
         };
         Ok(Self { sign_option })
     }
