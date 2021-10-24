@@ -12,23 +12,6 @@ pub enum Transfer {
 }
 
 impl Transfer {
-    pub fn from(
-        item: CliTransfer,
-        context: crate::common::Context,
-    ) -> color_eyre::eyre::Result<Self> {
-        match item {
-            CliTransfer::Amount(cli_transfer_near_action) => Ok(Self::Amount(
-                TransferNEARTokensAction::from(cli_transfer_near_action, context)?,
-            )),
-        }
-    }
-}
-
-impl Transfer {
-    // pub fn choose_transfer_near(context: crate::common::Context) -> color_eyre::eyre::Result<Self> {
-    //     Self::from(CliTransfer::Amount(Default::default()), context)
-    // }
-
     pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,

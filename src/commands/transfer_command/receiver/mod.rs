@@ -12,27 +12,6 @@ pub enum SendTo {
 }
 
 impl SendTo {
-    pub fn from(
-        item: CliSendTo,
-        context: crate::common::Context,
-    ) -> color_eyre::eyre::Result<Self> {
-        match item {
-            CliSendTo::Receiver(cli_receiver) => {
-                let receiver = Receiver::from(cli_receiver, context)?;
-                Ok(Self::Receiver(receiver))
-            }
-        }
-    }
-}
-
-impl SendTo {
-    // pub fn send_to(context: crate::common::Context) -> color_eyre::eyre::Result<Self> {
-    //     Ok(Self::from(
-    //         CliSendTo::Receiver(Default::default()),
-    //         context,
-    //     )?)
-    // }
-
     pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,

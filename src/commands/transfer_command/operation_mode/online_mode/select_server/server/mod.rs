@@ -105,26 +105,6 @@ pub enum SendFrom {
 }
 
 impl SendFrom {
-    pub fn from(
-        item: CliSendFrom,
-        context: crate::common::Context,
-    ) -> color_eyre::eyre::Result<Self> {
-        match item {
-            CliSendFrom::Sender(cli_sender) => Ok(Self::Sender(
-                crate::commands::transfer_command::sender::Sender::from(cli_sender, context)?,
-            )),
-        }
-    }
-}
-
-impl SendFrom {
-    // pub fn choose_send_from(context: crate::common::Context) -> color_eyre::eyre::Result<Self> {
-    //     Ok(Self::from(
-    //         CliSendFrom::Sender(Default::default()),
-    //         context,
-    //     )?)
-    // }
-
     pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,

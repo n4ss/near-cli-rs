@@ -51,38 +51,6 @@ enum CurrencySelection {
 }
 
 impl CurrencySelection {
-    fn from(
-        item: CliCurrencySelection,
-        context: crate::common::Context,
-    ) -> color_eyre::eyre::Result<Self> {
-        match item {
-            CliCurrencySelection::Near(cli_operation_mode) => Ok(Self::Near(
-                self::operation_mode::OperationMode::from(cli_operation_mode, context)?,
-            )),
-        }
-    }
-}
-
-impl CurrencySelection {
-    // fn choose_currency(context: crate::common::Context) -> color_eyre::eyre::Result<Self> {
-    //     println!();
-    //     let variants = CurrencySelectionDiscriminants::iter().collect::<Vec<_>>();
-    //     let currencies = variants
-    //         .iter()
-    //         .map(|p| p.get_message().unwrap().to_owned())
-    //         .collect::<Vec<_>>();
-    //     let selected_currency = Select::with_theme(&ColorfulTheme::default())
-    //         .with_prompt("What do you want to transfer?")
-    //         .items(&currencies)
-    //         .default(0)
-    //         .interact()
-    //         .unwrap();
-    //     let cli_currency = match variants[selected_currency] {
-    //         CurrencySelectionDiscriminants::Near => CliCurrencySelection::Near(Default::default()),
-    //     };
-    //     Ok(Self::from(cli_currency, context)?)
-    // }
-
     async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,

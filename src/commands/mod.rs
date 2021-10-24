@@ -24,6 +24,7 @@ pub enum TopLevelCommand {
     //     message = "View account, contract code, contract state, transaction, nonce, recent block hash"
     // ))]
     // View(self::view_command::ViewQueryRequest),
+    ///Use these to transfer tokens
     #[strum_discriminants(strum(message = "Transfer tokens"))]
     Transfer(self::transfer_command::Currency),
     // #[strum_discriminants(strum(message = "Execute function (contract method)"))]
@@ -41,67 +42,6 @@ pub enum TopLevelCommand {
 }
 
 impl TopLevelCommand {
-    pub fn from(
-        cli_top_level_command: CliTopLevelCommand,
-        context: crate::common::Context,
-    ) -> color_eyre::eyre::Result<Self> {
-        match cli_top_level_command {
-            // CliTopLevelCommand::Add(cli_add_action) => Ok(TopLevelCommand::Add(
-            //     self::add_command::AddAction::from(cli_add_action)?,
-            // )),
-            // CliTopLevelCommand::ConstructTransaction(cli_operation_mode) => {
-            //     TopLevelCommand::ConstructTransaction(
-            //         self::construct_transaction_command::operation_mode::OperationMode::from(
-            //             cli_operation_mode,
-            //         )
-            //         .unwrap(),
-            //     )
-            // }
-            // CliTopLevelCommand::Delete(cli_delete_action) => TopLevelCommand::Delete(
-            //     self::delete_command::DeleteAction::from(cli_delete_action).unwrap(),
-            // ),
-            // CliTopLevelCommand::Execute(cli_option_method) => TopLevelCommand::Execute(
-            //     self::execute_command::OptionMethod::from(cli_option_method).unwrap(),
-            // ),
-            // CliTopLevelCommand::GenerateShellCompletions(_) => {
-            //     unreachable!("This variant is handled in the main function")
-            // }
-            // CliTopLevelCommand::Login(cli_option_method) => {
-            //     TopLevelCommand::Login(cli_option_method.into())
-            // }
-            CliTopLevelCommand::Transfer(cli_currency) => Ok(TopLevelCommand::Transfer(
-                self::transfer_command::Currency::from(cli_currency, context)?,
-            )),
-            // CliTopLevelCommand::Utils(cli_util) => TopLevelCommand::Utils(cli_util.into()),
-            // CliTopLevelCommand::View(cli_view_query_request) => {
-            //     TopLevelCommand::View(cli_view_query_request.into())
-            // }
-        }
-    }
-}
-
-impl TopLevelCommand {
-    // pub fn choose_command(context: crate::common::Context) -> color_eyre::eyre::Result<Self> {
-    //     println!();
-    //     let cli_top_level_command = match crate::common::prompt_variant("Choose transaction action") {
-    //         TopLevelCommandDiscriminants::Add => CliTopLevelCommand::Add(Default::default()),
-    //         // TopLevelCommandDiscriminants::ConstructTransaction => {
-    //         //     CliTopLevelCommand::ConstructTransaction(Default::default())
-    //         // }
-    //         // TopLevelCommandDiscriminants::Delete => CliTopLevelCommand::Delete(Default::default()),
-    //         // TopLevelCommandDiscriminants::Execute => {
-    //         //     CliTopLevelCommand::Execute(Default::default())
-    //         // }
-    //         // TopLevelCommandDiscriminants::Login => CliTopLevelCommand::Login(Default::default()),
-    //         TopLevelCommandDiscriminants::Transfer => {
-    //             CliTopLevelCommand::Transfer(Default::default())
-    //         }
-    //         // TopLevelCommandDiscriminants::Utils => CliTopLevelCommand::Utils(Default::default()),
-    //         // TopLevelCommandDiscriminants::View => CliTopLevelCommand::View(Default::default()),
-    //     };
-    //     Ok(Self::from(cli_top_level_command, context)?)
-    // }
-
     pub async fn process(self) -> crate::CliResult {
         let unsigned_transaction = near_primitives::transaction::Transaction {
             signer_id: near_primitives::types::AccountId::test_account(),

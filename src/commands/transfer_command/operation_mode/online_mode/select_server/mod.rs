@@ -8,6 +8,7 @@ pub mod server;
 #[derive(Debug, Clone, EnumDiscriminants, InteractiveClap)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
 #[interactive_clap(context = crate::common::Context)]
+#[interactive_clap(fn_from = default)]
 ///Select NEAR protocol RPC server
 pub enum SelectServer {
     /// Provide data for the server https://rpc.testnet.near.org
@@ -47,28 +48,6 @@ impl SelectServer {
 }
 
 impl SelectServer {
-    // pub fn choose_server(context: crate::common::Context) -> color_eyre::eyre::Result<Self> {
-    //     println!();
-    //     let variants = SelectServerDiscriminants::iter().collect::<Vec<_>>();
-    //     let servers = variants
-    //         .iter()
-    //         .map(|p| p.get_message().unwrap().to_owned())
-    //         .collect::<Vec<_>>();
-    //     let selected_server = Select::with_theme(&ColorfulTheme::default())
-    //         .with_prompt("Select NEAR protocol RPC server:")
-    //         .items(&servers)
-    //         .default(0)
-    //         .interact()
-    //         .unwrap();
-    //     let cli_select_server = match variants[selected_server] {
-    //         SelectServerDiscriminants::Testnet => CliSelectServer::Testnet(Default::default()),
-    //         SelectServerDiscriminants::Mainnet => CliSelectServer::Mainnet(Default::default()),
-    //         SelectServerDiscriminants::Betanet => CliSelectServer::Betanet(Default::default()),
-    //         SelectServerDiscriminants::Custom => CliSelectServer::Custom(Default::default()),
-    //     };
-    //     Ok(Self::from(cli_select_server, context)?)
-    // }
-
     pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
